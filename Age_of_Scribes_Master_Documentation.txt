@@ -22,6 +22,7 @@ CORE SYSTEMS ARCHITECTURE:
 - Economy Tick System: Daily economic simulation with resource flows
 - Caravan System: Resource transport and trade network simulation
 - Guild Event Engine: Dynamic professional organization behavior and conflicts
+- NPC-Guild Integration System: Organic membership and career progression within guilds
 - NPC AI System: Autonomous character behavior with decision-making
 - NPC Career Transition System: Dynamic professional mobility
 - Faction Dynamics: Political relationships and organizational behavior
@@ -667,6 +668,299 @@ TECHNICAL SPECIFICATIONS
 - Event history retention: Last 100 events per guild
 - Batch processing support for large guild populations
 - Integration hooks for custom event types and effects
+
+===============================================================================
+NPC-GUILD INTEGRATION SYSTEM
+===============================================================================
+
+OVERVIEW
+--------
+The NPC-Guild Integration System creates dynamic, organic relationships between
+individual NPCs and guild organizations. Unlike arbitrary assignment systems,
+this framework ensures guild membership feels realistic and meaningful, with
+NPCs making decisions based on personality, motivations, circumstances, and
+evolving loyalties over time.
+
+CORE PHILOSOPHY
+---------------
+**EMERGENT MEMBERSHIP:**
+- NPCs evaluate guild membership based on personal motivations
+- Career compatibility drives initial interest, personality determines commitment
+- Guild membership evolves as living relationships that change over time
+- No automatic assignments—all membership must be earned and maintained
+
+**AUTHENTIC PLAYER TREATMENT:**
+- Player characters receive no special treatment or automatic acceptance
+- Guild membership must be earned through proper gameplay mechanics
+- Guilds maintain their own standards and politics affecting all applicants
+- Multiple pathways exist for players to navigate guild requirements
+
+**DYNAMIC LOYALTY SYSTEM:**
+- Guild loyalty fluctuates based on personal experiences and guild performance
+- Members can become disloyal, defect, or conspire against their organizations
+- High-performing guilds naturally attract and retain superior members
+- Conflicts and events create meaningful loyalty consequences
+
+NPC PROFILE EXTENSIONS
+-----------------------
+**NEW GUILD ATTRIBUTES:**
+```python
+class NPCProfile:
+    # Core guild membership attributes
+    guild_membership: Optional[str] = None  # LocalGuild ID or None
+    guild_rank: Optional[str] = None        # "apprentice", "journeyman", "master", "guildmaster"
+    guild_loyalty_score: float = 0.0        # -1.0 (disloyal) to 1.0 (devoted)
+    guild_history: List[Dict[str, Any]] = []  # Complete guild involvement record
+```
+
+**GUILD HISTORY TRACKING:**
+Each entry captures complete context of guild relationships:
+- Event type: joined, promoted, expelled, resigned, conspired
+- Guild identification and name for historical reference
+- Rank and status at time of event
+- Timestamp and circumstances of change
+- Motivation scores and external factors
+
+LOCAL GUILD EXTENSIONS
+-----------------------
+**MEMBER MANAGEMENT CAPABILITIES:**
+```python
+class LocalGuild:
+    # Member management attributes
+    members: List[str] = []                 # NPC IDs of current members
+    rank_structure: List[str] = ["apprentice", "journeyman", "master", "guildmaster"]
+    member_cap: int = 50                    # Maximum sustainable membership
+    skill_threshold: Dict[str, float] = {   # Entry requirements
+        "reputation": 0.0,                  # Local standing requirement
+        "loyalty": 0.1,                     # Community commitment
+        "wealth": 0.0                       # Economic prerequisites
+    }
+```
+
+**MEMBER PROCESSING METHODS:**
+- `accept_member()`: Process applications with requirement checking
+- `evaluate_member_promotion()`: Assess promotion eligibility based on loyalty and performance
+- `remove_member()`: Handle voluntary resignation and involuntary expulsion
+- `evaluate_member_requirements()`: Check if potential applicants meet standards
+
+GUILD AFFILIATION MECHANICS
+----------------------------
+**DAILY EVALUATION PROCESS:**
+The system evaluates every NPC's guild status through `evaluate_guild_affiliation()`:
+
+**FOR UNAFFILIATED NPCS:**
+1. **Career Compatibility Assessment**: Determines guild eligibility based on profession
+2. **Guild Discovery**: Identifies appropriate guilds within settlement
+3. **Motivation Calculation**: Evaluates personal desire to join based on:
+   - Personality traits (loyal/pragmatic vs rebellious/freedom-loving)
+   - Belief system values (authority vs freedom, law vs independence)
+   - Economic motivations (guild wealth, personal financial needs)
+   - Social factors (loneliness, community connection needs)
+4. **Guild Selection**: Chooses best-fitting guild considering:
+   - Guild reputation and settlement standing
+   - Faction alignment compatibility
+   - Guild size and intimacy preferences
+   - Stability and conflict status
+5. **Requirements Verification**: Guild evaluates NPC against established standards
+6. **Membership Processing**: If accepted, establishes initial rank and loyalty score
+
+**FOR CURRENT MEMBERS:**
+1. **Promotion Assessment**: Evaluates eligibility for rank advancement
+2. **Loyalty Dynamics**: Adjusts loyalty based on:
+   - Guild performance and stability trends
+   - Personal reputation changes and social standing
+   - Personality-based loyalty drift over time
+   - External conflicts and political pressures
+3. **Departure Evaluation**: Assesses potential resignation or expulsion risks
+4. **Status Processing**: Implements any changes to membership status
+
+CAREER-GUILD MAPPING SYSTEM
+----------------------------
+Professional compatibility determines guild eligibility:
+
+| Career Type | Guild Eligibility | Membership Notes |
+|-------------|------------------|------------------|
+| Merchant | Merchants Guild | Trade and commerce focus |
+| Craftsman | Craftsmen Guild | Artisan and manufacturing |
+| Scholar | Scholars Guild | Academic and research institutions |
+| Guard | Warriors Guild | Military and security organizations |
+| Thief | Thieves Guild | Criminal organizations (hidden membership) |
+| Mage | Mages Guild | Magical practitioners and theorists |
+| Farmer | Generally Independent | Rural isolation prevents guild participation |
+| Laborer | Generally Independent | General workforce without specialization |
+| Noble | Above Guild Systems | Social rank prevents guild membership |
+| Clergy | Religious Organizations | Separate from guild structure |
+
+PROMOTION AND RANKING SYSTEM
+-----------------------------
+**STANDARD GUILD HIERARCHY:**
+1. **Apprentice**: Entry-level position focusing on skill development
+2. **Journeyman**: Competent practitioner with full guild privileges
+3. **Master**: Senior member qualified to train others and influence policy
+4. **Guildmaster**: Leadership position with authority over guild direction
+
+**PROMOTION REQUIREMENTS:**
+- **Loyalty Threshold**: Minimum devotion to guild interests and values
+- **Reputation Standard**: Community standing and professional competence
+- **Time Served**: Minimum duration at current rank for experience
+- **Guild Capacity**: Available positions at target rank level
+
+**PROMOTION ASSESSMENT:**
+```python
+def evaluate_member_promotion(npc_id: str, npc_loyalty: float, 
+                            npc_reputation: float, current_rank: str) -> Optional[str]:
+    promotion_thresholds = {
+        'apprentice': {'loyalty': 0.3, 'reputation': 0.1, 'time_served': 30},
+        'journeyman': {'loyalty': 0.5, 'reputation': 0.3, 'time_served': 90},
+        'master': {'loyalty': 0.7, 'reputation': 0.5, 'time_served': 180}
+    }
+    
+    requirements = promotion_thresholds.get(current_rank)
+    if npc_loyalty >= requirements['loyalty'] and npc_reputation >= requirements['reputation']:
+        return next_rank_in_hierarchy
+    return None
+```
+
+LOYALTY DYNAMICS SYSTEM
+------------------------
+Guild loyalty score (-1.0 to 1.0) reflects NPC commitment and satisfaction:
+
+**POSITIVE LOYALTY INFLUENCES:**
+- Successful guild operations and prosperity: +0.01 daily
+- Personal promotions and recognition: +0.2 instant boost
+- Guild stability and effective leadership: +0.01 daily
+- Naturally loyal personality traits: +0.005 daily drift
+- Economic benefits and job security: Variable based on circumstances
+
+**NEGATIVE LOYALTY INFLUENCES:**
+- Guild conflicts and political instability: -0.02 to -0.05 daily
+- Personal reputation problems affecting standing: -0.01 daily
+- Rebellious personality traits: -0.01 daily drift
+- Leadership failures and corruption scandals: Event-based penalties
+- Economic hardship and reduced benefits: Variable penalties
+
+**LOYALTY INTERPRETATION THRESHOLDS:**
+- **1.0 to 0.7**: Devoted member, unlikely to leave under any circumstances
+- **0.6 to 0.3**: Committed member, stable and reliable guild participant
+- **0.2 to -0.2**: Neutral member, may be influenced by external factors
+- **-0.3 to -0.6**: Disloyal member, actively considering departure
+- **-0.7 to -1.0**: Actively disloyal, likely to defect or join conspiracies
+
+PLAYER CHARACTER INTEGRATION
+-----------------------------
+**GUILD APPLICATION METHODS:**
+
+**Formal Application Process:**
+- Standard approach through established guild leadership
+- Requires meeting all stated membership requirements
+- Most socially acceptable and straightforward method
+- Success determined by reputation, wealth, and career compatibility
+
+**Informal Network Approach:**
+- Leveraging social connections and member recommendations
+- Can circumvent some formal requirements through influence
+- Requires existing relationships with current guild members
+- Creates obligations and political debts for future consideration
+
+**Bribery and Corruption:**
+- Offering payments or valuable favors for admission consideration
+- Can overcome reputation or skill deficiencies through wealth
+- Significantly reduces initial loyalty score due to corrupt entry
+- Risk of causing offense and permanent rejection if mishandled
+
+**Coercion and Intimidation:**
+- Using threats or demonstrations of power for forced admission
+- Extremely high-risk approach that can backfire catastrophically
+- Requires substantial reputation or demonstrable power to be effective
+- Creates permanently hostile relationships within guild structure
+
+**PLAYER ADVANTAGES:**
+Players possess unique capabilities without receiving unfair benefits:
+- **Active Agency**: Can work systematically to meet guild requirements
+- **Strategic Networking**: Can build relationships to improve acceptance chances
+- **Resource Application**: Can deploy wealth to overcome certain barriers
+- **Reputation Management**: Can actively improve standing through choices and actions
+
+ECONOMIC AND CAREER INTEGRATION
+--------------------------------
+**JOB AVAILABILITY EFFECTS:**
+Guild membership significantly impacts economic opportunities:
+- **Priority Access**: Members receive preference for guild-related employment
+- **Exclusive Opportunities**: Some positions available only to guild members
+- **Market Restrictions**: Non-members may be blocked from certain trades
+- **Professional Networks**: Membership provides access to business connections
+
+**TRADE AND COMMERCE IMPACTS:**
+- **Favorable Rates**: Guild members negotiate better prices and terms
+- **Market Access**: Some markets restricted to guild membership
+- **Caravan Protection**: Guild connections provide travel safety
+- **Credit Systems**: Guild standing affects lending and contract opportunities
+
+**CAREER TRANSITION SUPPORT:**
+- **Skill Development**: Guilds provide training and mentorship programs
+- **Professional Advancement**: Clear progression paths within specializations
+- **Cross-Guild Relationships**: Professional networks spanning multiple organizations
+- **Entrepreneurship Support**: Established members can launch independent practices
+
+CONSPIRACY AND CONFLICT SYSTEMS
+--------------------------------
+**ORGANIC CONSPIRACY FORMATION:**
+NPCs with low loyalty may form plots against their guilds:
+
+**Conspiracy Types:**
+- **Internal Takeover**: Existing members plotting leadership changes
+- **Hostile Takeover**: External groups attempting to seize control
+- **Splinter Formation**: Dissatisfied members creating competing organizations
+- **Rival Destruction**: Coordinated attacks on competing guilds
+
+**Success Factors:**
+- **Leadership Quality**: Cunning and diplomatic conspirators improve chances
+- **Target Vulnerability**: Unstable guilds with low member loyalty
+- **External Support**: Faction backing or rival guild assistance
+- **Timing**: Exploitation of guild crises and leadership transitions
+
+**Potential Outcomes:**
+- Leadership replacement and policy reform
+- Mass resignations and organizational splits
+- New guild formation and market competition
+- Conspiracy exposure and member purges
+
+TECHNICAL SPECIFICATIONS
+-------------------------
+**PERFORMANCE METRICS:**
+- Processing time: <2ms per NPC per daily evaluation
+- Memory usage: Additional 1KB per NPC for guild attributes
+- Scalability: Supports 10,000+ NPCs with guild affiliations
+- Integration overhead: <5% additional processing time for existing systems
+
+**SYSTEM INTEGRATION POINTS:**
+- **Settlement System**: Guild activities affect local economic conditions
+- **Economy System**: Guild membership influences trade and employment
+- **Faction System**: Guild politics intersect with broader political dynamics
+- **Career System**: Guild membership affects professional advancement
+- **Reputation System**: Guild standing influences social interactions
+
+**DATA PERSISTENCE:**
+- Guild membership state saved with NPC profiles
+- Guild history archived for narrative continuity
+- Loyalty trends tracked for long-term character development
+- Conspiracy activities logged for story generation
+
+NARRATIVE GENERATION
+---------------------
+**EVENT TYPES:**
+All guild interactions generate narrative events for story integration:
+- **Membership Changes**: Joining, departing, rank advancement
+- **Loyalty Shifts**: Significant changes in devotion and commitment
+- **Conflict Development**: Conspiracies, rivalries, political maneuvering
+- **Economic Impacts**: Employment changes, trade advantages, market access
+
+**STORY INTEGRATION:**
+Guild events create meaningful narrative opportunities:
+- Personal character development through professional advancement
+- Political intrigue through guild conspiracies and power struggles
+- Economic storytelling through trade conflicts and market competition
+- Social dynamics through professional relationships and rivalries
 
 ===============================================================================
 NPC AI SYSTEM

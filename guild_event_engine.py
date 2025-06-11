@@ -22,6 +22,11 @@ from typing import Dict, List, Optional, Any, Tuple, Set
 from collections import defaultdict
 from enum import Enum
 
+# Forward declaration to avoid circular imports
+from typing import TYPE_CHECKING
+if TYPE_CHECKING:
+    from npc_profile import NPCProfile
+
 
 class GuildType(Enum):
     """Types of guilds with different specializations and behaviors."""
@@ -246,6 +251,16 @@ class LocalGuild:
         self.allied_guilds: Set[str] = set()
         self.settlement_reputation = 50.0  # Reputation in base settlement
         self.regional_connections: Dict[str, float] = {}  # Other settlements
+        
+        # Member management
+        self.members: List[str] = []  # List of NPC IDs who are members
+        self.rank_structure: List[str] = ["apprentice", "journeyman", "master", "guildmaster"]  # Hierarchy
+        self.member_cap: int = 50  # Maximum members this guild can support
+        self.skill_threshold: Dict[str, float] = {  # Minimum requirements for joining
+            "reputation": 0.0,  # Local reputation requirement
+            "loyalty": 0.1,     # Minimum loyalty to community/faction
+            "wealth": 0.0       # Economic requirement (if any)
+        }
         
         # History and tracking
         self.active_events: List[str] = []  # Active event IDs
@@ -503,6 +518,167 @@ class LocalGuild:
             'allied_guilds_count': len(self.allied_guilds),
             'last_update': self.last_update.isoformat()
         }
+    
+    def accept_member(self, npc_id: str) -> bool:
+        """
+        Accept a new member into the guild.
+        
+        Args:
+            npc_id: ID of the NPC to accept
+            
+        Returns:
+            True if member was accepted, False otherwise
+        """
+        if len(self.members) >= self.member_cap:
+            return False
+        
+        if npc_id in self.members:
+            return False  # Already a member
+        
+        # Add member to guild
+        self.members.append(npc_id)
+        self.member_count = len(self.members)
+        
+        # Record membership change in history
+        self.historical_events.append({
+            'type': 'member_joined',
+            'npc_id': npc_id,
+            'rank': 'apprentice',  # Starting rank
+            'timestamp': datetime.now(),
+            'circumstances': 'accepted_application'
+        })
+        
+        return True
+    
+    def evaluate_member_promotion(self, npc_id: str, npc_loyalty: float, 
+                                 npc_reputation: float, current_rank: str) -> Optional[str]:
+        """
+        Evaluate if a member should be promoted.
+        
+        Args:
+            npc_id: ID of the NPC to evaluate
+            npc_loyalty: NPC's loyalty to the guild (-1.0 to 1.0)
+            npc_reputation: NPC's local reputation (-1.0 to 1.0)
+            current_rank: Current rank of the NPC
+            
+        Returns:
+            New rank if promotion warranted, None otherwise
+        """
+        if npc_id not in self.members:
+            return None
+        
+        if current_rank not in self.rank_structure:
+            return None
+        
+        current_rank_index = self.rank_structure.index(current_rank)
+        if current_rank_index >= len(self.rank_structure) - 1:
+            return None  # Already at highest rank
+        
+        # Promotion requirements
+        promotion_requirements = {
+            'apprentice': {'loyalty': 0.3, 'reputation': 0.1, 'time_served': 30},
+            'journeyman': {'loyalty': 0.5, 'reputation': 0.3, 'time_served': 90},
+            'master': {'loyalty': 0.7, 'reputation': 0.5, 'time_served': 180}
+        }
+        
+        requirements = promotion_requirements.get(current_rank)
+        if not requirements:
+            return None
+        
+        # Check loyalty requirement
+        if npc_loyalty < requirements['loyalty']:
+            return None
+        
+        # Check reputation requirement
+        if npc_reputation < requirements['reputation']:
+            return None
+        
+        # In a full implementation, would check time_served from guild_history
+        # For now, assume time requirements are met
+        
+        next_rank = self.rank_structure[current_rank_index + 1]
+        
+        # Record promotion in history
+        self.historical_events.append({
+            'type': 'member_promoted',
+            'npc_id': npc_id,
+            'old_rank': current_rank,
+            'new_rank': next_rank,
+            'timestamp': datetime.now(),
+            'loyalty_score': npc_loyalty,
+            'reputation_score': npc_reputation
+        })
+        
+        return next_rank
+    
+    def remove_member(self, npc_id: str, reason: str) -> None:
+        """
+        Remove a member from the guild.
+        
+        Args:
+            npc_id: ID of the NPC to remove
+            reason: Reason for removal (e.g., "expelled", "resigned", "died")
+        """
+        if npc_id in self.members:
+            self.members.remove(npc_id)
+            self.member_count = len(self.members)
+            
+            # Record removal in history
+            self.historical_events.append({
+                'type': 'member_removed',
+                'npc_id': npc_id,
+                'reason': reason,
+                'timestamp': datetime.now()
+            })
+            
+            # Adjust member loyalty if this was an expulsion
+            if reason in ['expelled', 'banished']:
+                self.member_loyalty = max(0.0, self.member_loyalty - 5.0)
+                self.stability = max(0.0, self.stability - 2.0)
+    
+    def evaluate_member_requirements(self, npc_reputation: float, npc_loyalty: float, 
+                                   npc_wealth: float = 0.0) -> bool:
+        """
+        Check if an NPC meets the requirements to join this guild.
+        
+        Args:
+            npc_reputation: NPC's local reputation (-1.0 to 1.0)
+            npc_loyalty: NPC's loyalty to community/faction (-1.0 to 1.0)
+            npc_wealth: NPC's wealth level (0.0 to 1.0)
+            
+        Returns:
+            True if requirements are met
+        """
+        if len(self.members) >= self.member_cap:
+            return False
+        
+        # Check reputation requirement
+        if npc_reputation < self.skill_threshold['reputation']:
+            return False
+        
+        # Check loyalty requirement
+        if npc_loyalty < self.skill_threshold['loyalty']:
+            return False
+        
+        # Check wealth requirement
+        if npc_wealth < self.skill_threshold['wealth']:
+            return False
+        
+        return True
+    
+    def get_member_by_rank(self, rank: str) -> List[str]:
+        """
+        Get all members of a specific rank.
+        
+        Args:
+            rank: Rank to search for
+            
+        Returns:
+            List of NPC IDs with that rank
+        """
+        # In a full implementation, would track individual member ranks
+        # For now, return empty list as placeholder
+        return []
 
 
 class RegionalGuild:

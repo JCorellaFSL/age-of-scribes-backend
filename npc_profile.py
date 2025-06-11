@@ -106,6 +106,12 @@ class NPCProfile:
         self.social_circle = social_circle or []
         self.reputation_local = reputation_local or {region: 0.0}
         
+        # Guild membership attributes
+        self.guild_membership: Optional[str] = None  # ID of local guild chapter or None
+        self.guild_rank: Optional[str] = None        # e.g., "apprentice", "journeyman", "master", "guildmaster"
+        self.guild_loyalty_score: float = 0.0        # -1.0 (disloyal) to 1.0 (devoted)
+        self.guild_history: List[Dict[str, Any]] = []  # historical record of guild involvement
+        
         # Initialize memory bank
         self.memory_bank = MemoryBank(self.npc_id)
         
@@ -388,6 +394,10 @@ class NPCProfile:
             'belief_system': self.belief_system,
             'social_circle': self.social_circle,
             'reputation_local': self.reputation_local,
+            'guild_membership': self.guild_membership,
+            'guild_rank': self.guild_rank,
+            'guild_loyalty_score': self.guild_loyalty_score,
+            'guild_history': self.guild_history,
             'trait_evolution_history': [
                 {
                     'timestamp': entry['timestamp'].isoformat(),
@@ -420,6 +430,12 @@ class NPCProfile:
             social_circle=data.get('social_circle', []),
             reputation_local=data.get('reputation_local', {})
         )
+        
+        # Restore guild attributes
+        profile.guild_membership = data.get('guild_membership')
+        profile.guild_rank = data.get('guild_rank')
+        profile.guild_loyalty_score = data.get('guild_loyalty_score', 0.0)
+        profile.guild_history = data.get('guild_history', [])
         
         # Restore trait evolution history
         if 'trait_evolution_history' in data:
