@@ -23,6 +23,7 @@ CORE SYSTEMS ARCHITECTURE:
 - Caravan System: Resource transport and trade network simulation
 - Guild Event Engine: Dynamic professional organization behavior and conflicts
 - NPC-Guild Integration System: Organic membership and career progression within guilds
+- Guild Formation System: Equal opportunity guild creation for NPCs and Player Characters
 - NPC AI System: Autonomous character behavior with decision-making
 - NPC Career Transition System: Dynamic professional mobility
 - Faction Dynamics: Political relationships and organizational behavior
@@ -961,6 +962,283 @@ Guild events create meaningful narrative opportunities:
 - Political intrigue through guild conspiracies and power struggles
 - Economic storytelling through trade conflicts and market competition
 - Social dynamics through professional relationships and rivalries
+
+===============================================================================
+GUILD FORMATION SYSTEM
+===============================================================================
+
+OVERVIEW
+--------
+The Guild Formation System enables both NPCs and Player Characters to initiate
+the creation of new professional organizations within the simulation. This system
+maintains strict equal treatment—Player Characters receive no special privileges
+and must navigate identical challenges, requirements, and political obstacles as NPCs.
+
+Guild formation is an earned achievement requiring careful planning, resource
+accumulation, political maneuvering, and sustained effort over 30-90+ days.
+
+CORE PHILOSOPHY
+---------------
+**EARNED ACHIEVEMENT PRINCIPLE:**
+- Guild formation must be earned through gameplay mechanics, not menu selection
+- Success requires meeting real skill, reputation, and economic thresholds
+- Political opposition and competition create meaningful challenges
+- Both success and failure generate lasting narrative consequences
+
+**EQUAL TREATMENT STANDARD:**
+- Player Characters follow identical rules and requirements as NPCs
+- Same skill thresholds, reputation requirements, and support needs
+- No automatic approval or reduced barriers for players
+- Political opposition affects all characters equally regardless of player status
+
+**REALISTIC CHALLENGE STRUCTURE:**
+- Economic barriers require significant capital investment (1000-3000 gold)
+- Legal obstacles demand navigation of settlement politics and regulations
+- Social requirements necessitate building genuine NPC support networks
+- Opposition from existing guilds creates competitive market dynamics
+
+GUILD FORMATION PROPOSAL SYSTEM
+--------------------------------
+**PROPOSAL TRACKING CLASS:**
+```python
+class GuildFormationProposal:
+    # Core identification
+    proposal_id: str                    # Unique identifier
+    initiator_id: str                   # NPC or Player ID
+    proposed_guild_name: str            # Name for new organization
+    guild_type: str                     # Professional focus area
+    formation_type: GuildFormationType  # Legal, splinter, underground, etc.
+    target_settlement: str              # Location for guild headquarters
+    is_player_initiated: bool           # True if PC created proposal
+    
+    # Progress tracking
+    status: FormationStatus             # Current phase of formation
+    supporting_members: List[str]       # NPCs supporting formation
+    required_support_count: int         # Minimum supporters needed
+    pc_support_modifier: float          # Additional influence if PC has backing
+    
+    # Challenge management
+    legal_obstacles: List[str]          # Legal barriers to overcome
+    political_complications: List[str]   # Political issues to resolve
+    economic_barriers: List[str]        # Economic challenges to address
+    opposing_factions: List[str]        # Factions opposing formation
+    rival_guilds: List[str]             # Existing guilds threatened by proposal
+```
+
+FORMATION TYPES AND PROCESSES
+------------------------------
+**LEGAL FORMATION (Standard Path):**
+- Timeline: 60-120 days with legal review phases
+- Requirements: Full regulatory compliance, settlement approval
+- Advantages: Official recognition, legal protections, market access
+- Challenges: Lengthy approval process, regulatory compliance costs
+- Success Rate: 60-70% for well-prepared proposals
+
+**SPLINTER GROUP FORMATION:**
+- Timeline: 30-60 days but creates permanent political tensions
+- Requirements: Minimum member exodus (3-8 from parent guild)
+- Advantages: Experienced membership base, established networks
+- Challenges: Rivalry with parent guild, potential legal complications
+- Triggers: Parent guild instability, ideological schisms, leadership conflicts
+
+**UNDERGROUND GUILD FORMATION:**
+- Timeline: 15-45 days but perpetual operational risks
+- Requirements: Poor reputation beneficial, criminal networks helpful
+- Advantages: Lower barriers to entry, freedom from regulations
+- Challenges: Risk of discovery, limited market access, unstable membership
+- Prerequisites: Local reputation <-0.3, law enforcement strength <80
+
+**RIVAL ORGANIZATION FORMATION:**
+- Timeline: 90-180 days with intense political maneuvering
+- Requirements: Higher support thresholds, significant capital investment
+- Advantages: Market opportunities in competitive spaces
+- Challenges: Active opposition from established competitors
+- Strategy: Direct competition with existing guild market positions
+
+CHARACTER REQUIREMENTS
+-----------------------
+**UNIVERSAL ELIGIBILITY STANDARDS (NPCs AND PCs):**
+
+**Skill Competency Requirements:**
+- Minimum professional skill: 0.6/1.0 in relevant field
+- Supporting skills in leadership, diplomacy, or economics
+- Skill verification through demonstrated actions, not declared stats
+- Ongoing skill development possible during formation process
+
+**Reputation Standards:**
+- Legal formation: 0.3/1.0 minimum local reputation
+- Underground formation: -0.5/1.0 maximum (poor reputation beneficial)
+- Splinter formation: Variable based on parent guild relationship
+- Rival formation: 0.4/1.0 minimum to compete effectively
+
+**Economic Capacity Requirements:**
+- Legal formation: 1000-2000 gold startup capital
+- Underground formation: 300-800 gold reduced requirements
+- Splinter formation: 1500-3000 gold due to competition costs
+- Ongoing operational expenses: 10-20% of startup costs monthly
+
+**Social Support Network:**
+- Minimum supporters: 3-10 NPCs depending on formation type
+- Support quality: Supporters must have legitimate backing motivations
+- Network stability: Supporters can withdraw if circumstances change
+- Political backing: Faction support significantly improves success chances
+
+FORMATION PROCESS PHASES
+-------------------------
+**PHASE 1: PROPOSAL CREATION (1-7 days)**
+- Initial eligibility assessment and requirement verification
+- Formation type determination based on character circumstances
+- Basic support network evaluation and political landscape analysis
+- Proposal parameter configuration and challenge identification
+
+**PHASE 2: SUPPORT GATHERING (30-60 days)**
+- Daily 10% chance of support network changes
+- 70% probability of gaining supporters vs 30% chance of new obstacles
+- Political relationship building and faction negotiation
+- Economic resource accumulation and investment securing
+- Success threshold: Minimum supporter count reached
+
+**PHASE 3: LEGAL REVIEW (Legal Formation Only, 15-30 days)**
+- Base daily legal progress: 10% reduced by 2% per legal obstacle
+- Opposition can file formal challenges extending timeline
+- Political connections can accelerate approval through influence
+- Resolution outcomes: Approval, conditional approval, rejection, or delay
+
+**PHASE 4: GUILD ESTABLISHMENT (7-14 days)**
+- Official charter creation and regulatory compliance completion
+- Operational setup including workspace and resource allocation
+- Member role assignment and hierarchy establishment
+- Market entry and competitive positioning against existing guilds
+
+PLAYER CHARACTER INTEGRATION
+-----------------------------
+**NO SPECIAL TREATMENT POLICY:**
+- Players face identical skill, reputation, and economic requirements
+- Same timeline constraints and political opposition as NPCs
+- No accelerated approval processes or reduced barriers
+- Failure carries identical penalties and reputation consequences
+
+**EARNED PLAYER ADVANTAGES:**
+- Active agency to systematically work toward meeting requirements
+- Strategic planning capability across multiple game sessions
+- Resource allocation control to direct wealth toward formation goals
+- Political maneuvering through relationship building and negotiation
+
+**PC SUPPORT MODIFIER CALCULATION:**
+```python
+def calculate_pc_support_modifier(player: PlayerProfile) -> float:
+    modifier = 0.0
+    
+    # Wealth influence (earned through gameplay)
+    if player.wealth_level > 5000: modifier += 0.2
+    elif player.wealth_level > 2000: modifier += 0.1
+    
+    # Reputation influence (built through actions)
+    max_reputation = max(player.reputation_local.values())
+    if max_reputation > 0.7: modifier += 0.2
+    elif max_reputation > 0.4: modifier += 0.1
+    
+    # Social network (developed through play)
+    if len(player.social_connections) > 10: modifier += 0.1
+    elif len(player.social_connections) > 5: modifier += 0.05
+    
+    return min(0.3, modifier)  # Capped to prevent overwhelming advantage
+```
+
+SPLINTER GROUP MECHANICS
+-------------------------
+**SPLINTERING TRIGGERS:**
+- Parent guild stability <50 or member loyalty <60
+- Ideological schisms over guild direction or policies
+- Leadership conflicts including succession disputes
+- Economic disputes over resource allocation or corruption
+- External pressures from faction politics forcing divisions
+
+**SPLINTERING PROCESS:**
+```python
+def process_guild_splintering(parent_guild: LocalGuild, 
+                            splintering_members: List[str],
+                            splinter_leader: str) -> Dict[str, Any]:
+    # Validate minimum exodus (3-8 members) and leadership capability
+    # Create new LocalGuild with 40% of parent influence
+    # Transfer members and proportional resources
+    # Establish permanent rivalry between parent and splinter
+    # Apply stability (-30), loyalty (-20), influence (-15) penalties to parent
+```
+
+**PARENT GUILD IMPACT:**
+- Immediate stability loss: -30 points
+- Member loyalty reduction: -20 points among remaining members
+- Influence decrease: -15 points in local settlement
+- Permanent competitive tension with splinter organization
+- Resource division between parent and splinter groups
+
+UNDERGROUND AND ROGUE GUILDS
+-----------------------------
+**ROGUE FORMATION CONDITIONS:**
+- Character reputation <-0.3 (outcasts and criminals)
+- Existing criminal network connections
+- Settlement law enforcement strength <80 (permissive environment)
+- Limited legal economic opportunities due to blacklisting
+- Social marginalization from legitimate professional networks
+
+**UNDERGROUND OPERATION CHARACTERISTICS:**
+- Reduced formation barriers but perpetual operational risks
+- Hidden meeting locations and concealed activities
+- Limited market access restricted to underground trades
+- Constant threat of discovery and legal consequences
+- Higher membership turnover due to arrest, death, or defection
+
+**ROGUE GUILD FORMATION FUNCTION:**
+```python
+def evaluate_rogue_guild_formation(actor: Union[NPCProfile, PlayerProfile],
+                                 context: Dict[str, Any]) -> Optional[GuildFormationProposal]:
+    # Check criminal reputation and enforcement vulnerability
+    # Assess underground network availability and safe locations
+    # Configure reduced requirements but increased risks
+    # Generate criminal contact support network
+    # Return underground formation proposal or None if impossible
+```
+
+TECHNICAL SPECIFICATIONS
+-------------------------
+**PERFORMANCE METRICS:**
+- Proposal processing: <1ms per active proposal per daily tick
+- Formation evaluation: <5ms per character eligibility assessment
+- Support network analysis: <3ms per NPC relationship calculation
+- Memory usage: ~2KB per active GuildFormationProposal
+- Scalability: Supports 100+ simultaneous formation attempts
+
+**INTEGRATION POINTS:**
+- Settlement System: Guild formation affects local economic development
+- Economy System: New guilds alter trade patterns and resource flows
+- Faction System: Guild politics intersect with broader political dynamics
+- NPC-Guild Integration: Formation feeds into existing membership systems
+- Reputation System: Formation success/failure affects character standing
+
+**DATA PERSISTENCE:**
+- Formation proposals saved with complete progress tracking
+- Historical formation attempts archived for narrative continuity
+- Success/failure outcomes logged for character development
+- Political consequences tracked across faction relationships
+
+NARRATIVE GENERATION
+---------------------
+**FORMATION EVENT TYPES:**
+All guild formation activities generate rich narrative content:
+- Proposal milestones and setback events during formation process
+- Political intrigue through opposition activities and countermeasures
+- Economic drama from resource competition and financial challenges
+- Personal character development through leadership trials
+- Community impact from new guild establishment or formation failures
+
+**STORY INTEGRATION:**
+Guild formation creates lasting narrative consequences:
+- Professional advancement opportunities through successful leadership
+- Political relationships shaped by formation alliances and oppositions
+- Economic storylines through market competition and resource control
+- Social dynamics through professional network establishment
+- Settlement development influenced by new organizational structures
 
 ===============================================================================
 NPC AI SYSTEM
