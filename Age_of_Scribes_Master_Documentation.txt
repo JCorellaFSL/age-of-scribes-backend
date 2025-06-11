@@ -21,6 +21,7 @@ CORE SYSTEMS ARCHITECTURE:
 - Settlement System: Dynamic settlement management with tier-based classification
 - Economy Tick System: Daily economic simulation with resource flows
 - Caravan System: Resource transport and trade network simulation
+- Guild Event Engine: Dynamic professional organization behavior and conflicts
 - NPC AI System: Autonomous character behavior with decision-making
 - NPC Career Transition System: Dynamic professional mobility
 - Faction Dynamics: Political relationships and organizational behavior
@@ -558,6 +559,114 @@ for caravan in all_caravans:
 # Economic impact measurement
 total_trade_volume = sum(sum(c.resource_manifest.values()) for c in all_caravans)
 ```
+
+===============================================================================
+GUILD EVENT ENGINE
+===============================================================================
+
+OVERVIEW
+--------
+The Guild Event Engine provides dynamic, emergent behavior for professional
+organizations, trade guilds, and merchant collectives within settlements.
+It simulates power struggles, monopoly assertions, faction alignment shifts,
+and other dramatic events that create narrative opportunities and affect
+local economic and political conditions.
+
+CORE COMPONENTS
+---------------
+**LOCAL GUILDS:**
+Professional organizations operating within single settlements:
+- Guild types: Merchants, Craftsmen, Scholars, Warriors, Thieves, Mages
+- Dynamic attributes: influence score (0-100), stability, wealth, member count
+- Conflict status progression: Peaceful → Tensions → Disputes → War → Siege
+- Relationship tracking: rivals, allies, faction alignments
+
+**REGIONAL GUILDS:**
+Multi-settlement organizations with expanded political influence:
+- Chapter guild management across multiple settlements
+- Regional influence mapping and political power metrics
+- Trade route control and government connections
+- Unity score tracking for organizational cohesion
+
+**GUILD EVENTS:**
+Dynamic events affecting guild behavior and settlements:
+- Power Struggle: Internal leadership conflicts and succession crises
+- Monopoly Grab: Aggressive market domination attempts
+- Faction Alignment Shift: Political loyalty changes and betrayals
+- Regional Ban: Government restrictions on guild operations
+- Internal Collapse: Organizational breakdown and member exodus
+- Guild War: Inter-guild conflicts and trade disputes
+- Charter Revoked: Legal dissolution by settlement authorities
+
+VOLATILITY AND EVENT GENERATION
+--------------------------------
+**VOLATILITY CALCULATION:**
+Event probability scales with guild instability factors:
+- Base probability: 2% daily chance per guild
+- Conflict status multipliers: Peaceful (1.0x) to Under Siege (2.5x)
+- Stability modifier: Low stability (30) increases volatility 2.3x
+- Monopoly attention: High market dominance attracts challenges
+- Faction alignment risk: Political connections increase volatility
+
+**EVENT WEIGHTING:**
+Event selection based on current guild conditions:
+- Power Struggle (weight 30): Triggered by stability < 50
+- Monopoly Grab (weight 25): Triggered by influence > 70
+- Regional Ban (weight 35): Triggered by settlement reputation < 30
+- Internal Collapse (weight 40): Triggered by stability < 30
+
+EVENT RESOLUTION MECHANICS
+---------------------------
+**DURATION AND SEVERITY:**
+- Event duration: 7-90 days based on type and severity
+- Severity scaling: 0.1-1.0 intensity affects daily impact
+- Daily effects: Gradual influence/stability changes during event
+- Resolution outcomes: Multiple possible endings per event type
+
+**RESOLUTION EXAMPLES:**
+Power Struggle outcomes:
+- Leadership Change: Stability +10, Influence -5
+- Compromise: Moderate improvements across metrics
+- Schism: Guild splits, massive stability loss (-20), member exodus (-30%)
+
+Monopoly Grab outcomes:
+- Monopoly Established: Market dominance (+15 influence, +30 monopoly strength)
+- Competition Emerges: Market pushback (-5 influence, -10 monopoly)
+- Government Intervention: Legal restrictions imposed
+
+INTEGRATION PATTERNS
+---------------------
+**SETTLEMENT EFFECTS:**
+Guild events modify settlement behavior:
+- Trade efficiency changes based on guild stability
+- Economic activity affected by charter revocations
+- Settlement reputation modified by guild actions
+
+**FACTION RELATIONSHIPS:**
+Political implications through faction_implications system:
+- Strained relationships: -severity×10 reputation
+- New alliances: +severity×5 reputation
+- Hostile relationships: -severity×20 reputation
+
+**NPC INTEGRATION:**
+Guild status affects character behavior:
+- Job availability modified by guild efficiency
+- Employment stability reduced during guild wars
+- Professional advancement through stable guilds
+
+TECHNICAL SPECIFICATIONS
+-------------------------
+**PERFORMANCE:**
+- Event generation: O(n) where n = number of guilds
+- Event processing: O(m) where m = active events
+- Memory usage: ~2KB per LocalGuild, ~3KB per RegionalGuild
+- Recommended limits: <1000 guilds, <100 simultaneous events
+
+**SCALABILITY:**
+- Daily processing: <10ms for 100 guilds with 20 active events
+- Event history retention: Last 100 events per guild
+- Batch processing support for large guild populations
+- Integration hooks for custom event types and effects
 
 ===============================================================================
 NPC AI SYSTEM

@@ -1,0 +1,520 @@
+Guild Event Engine Documentation
+=====================================
+
+Version: 1.0.0
+Last Updated: 2025-01-23
+
+OVERVIEW
+========
+
+The Guild Event Engine adds dynamic, emergent behavior to guild systems in the Age of Scribes 
+simulation engine. It simulates power struggles, monopoly assertions, faction alignments, 
+and other dramatic events that create narrative opportunities and affect guild operations.
+
+CORE COMPONENTS
+===============
+
+1. Guild Classes
+   - LocalGuild: Single-settlement professional organizations
+   - RegionalGuild: Multi-settlement guilds with expanded influence
+
+2. Event System
+   - GuildEvent: Dynamic events affecting guild behavior
+   - Event generation based on guild state and volatility
+   - Event resolution with narrative outcomes
+
+3. Integration Points
+   - Settlement system effects
+   - Faction relationship impacts
+   - NPC job assignment influence
+
+KEY FEATURES
+============
+
+Dynamic Guild Behavior
+-----------------------
+- Guilds evolve based on internal and external pressures
+- Conflict status progression (Peaceful → Tensions → Disputes → War → Siege)
+- Influence score volatility drives event generation
+- Member loyalty and stability affect guild viability
+
+Event Types
+-----------
+- Power Struggle: Internal leadership conflicts
+- Monopoly Grab: Attempts to dominate trade sectors
+- Faction Alignment Shift: Political loyalty changes
+- Regional Ban: Government restrictions on operations
+- Internal Collapse: Organizational breakdown
+- Guild War: Inter-guild conflicts
+- Charter Revoked: Legal dissolution
+
+Emergent Narratives
+-------------------
+- Events generate descriptive text for story integration
+- Multiple resolution outcomes based on severity
+- Historical tracking of guild evolution
+- Leadership changes and member fluctuations
+
+TECHNICAL SPECIFICATIONS
+=========================
+
+LocalGuild Class
+----------------
+Core Attributes:
+- guild_id: Unique identifier (UUID)
+- name: Display name of the guild
+- guild_type: GuildType enum (MERCHANTS, CRAFTSMEN, etc.)
+- base_settlement: Primary operating location
+- founding_year: Year of establishment
+- influence_score: Current influence level (0-100)
+- member_count: Number of active members
+- faction_alignment: Optional faction loyalty
+
+Dynamic State:
+- conflict_status: ConflictStatus enum
+- stability: Internal organization health (0-100)
+- wealth_level: Economic resources (0-100)
+- trade_efficiency: Operational effectiveness multiplier
+- monopoly_strength: Market dominance level (0-100)
+- member_loyalty: Average loyalty score (0-100)
+
+Relationships:
+- rival_guilds: Set of competing guild IDs
+- allied_guilds: Set of cooperative guild IDs
+- settlement_reputation: Local standing (0-100)
+- regional_connections: Influence in other settlements
+
+Methods:
+- calculate_influence_volatility(): Returns event probability modifier
+- update_daily_state(): Processes daily changes and evolution
+- apply_event_effects(): Applies ongoing event impacts
+- get_summary(): Returns comprehensive status information
+
+RegionalGuild Class
+-------------------
+Extended Attributes:
+- headquarters: Primary settlement
+- regional_influence: Dict mapping regions to influence scores
+- chapter_guilds: Set of LocalGuild IDs under this organization
+- total_members: Aggregate member count across chapters
+- political_power: Government influence level (0-100)
+- economic_control: Regional economy dominance (0-100)
+- unity_score: Chapter cohesion level (0-100)
+
+Advanced Features:
+- trade_routes_controlled: Set of controlled trade routes
+- government_connections: Settlement relationships
+- inter_guild_treaties: Diplomatic agreements
+- leadership_council: Governing body structure
+
+Methods:
+- add_chapter_guild(): Incorporates LocalGuild as chapter
+- remove_chapter_guild(): Removes chapter (dissolution/rebellion)
+- calculate_total_influence(): Sums regional influence
+
+GuildEvent Class
+----------------
+Event Attributes:
+- event_id: Unique identifier
+- guild_id: Primary affected guild
+- event_type: Type of event occurring
+- severity: Intensity scale (0.0-1.0)
+- duration: Length in simulation days
+- start_day: Beginning date
+- affected_regions: List of impacted settlements
+- faction_implications: Political relationship changes
+
+State Tracking:
+- days_remaining: Countdown to resolution
+- active: Whether event is currently ongoing
+- resolved: Whether event has concluded
+- resolution_outcome: Final result when concluded
+- participants: Other guilds involved
+- narrative_tags: Story generation metadata
+
+Methods:
+- advance_day(): Processes daily event progression
+- _determine_resolution(): Calculates event outcome
+- _calculate_daily_effects(): Returns mechanical impacts
+- get_narrative_description(): Generates story text
+
+EVENT GENERATION SYSTEM
+========================
+
+Volatility Calculation
+-----------------------
+Event probability scales with guild volatility factors:
+
+Base Volatility = 0.1
+
+Conflict Status Multipliers:
+- Peaceful: 1.0x
+- Tensions: 1.3x
+- Minor Disputes: 1.6x
+- Open Conflict: 2.0x
+- Under Siege: 2.5x
+- Disbanded: 0.0x
+
+Additional Factors:
+- Low stability increases volatility (2.0 - stability/100)
+- High monopoly strength attracts attention (+monopoly/200)
+- Faction alignment increases political risk (+0.2x)
+
+Event Type Selection
+--------------------
+Event weights based on guild conditions:
+
+Power Struggle (weight 30):
+- Triggered by stability < 50
+- Represents internal leadership disputes
+
+Monopoly Grab (weight 25):
+- Triggered by influence > 70
+- Aggressive market domination attempts
+
+Regional Ban (weight 35):
+- Triggered by settlement_reputation < 30
+- Government intervention against unpopular guilds
+
+Faction Alignment Shift (weight 20):
+- Requires existing faction_alignment
+- Political loyalty changes
+
+Internal Collapse (weight 40):
+- Triggered by stability < 30
+- Organizational breakdown risk
+
+Inter-Guild Events
+------------------
+Generated based on relationships:
+
+Guild War:
+- 0.5% daily chance between rivals
+- High severity (0.6-0.9)
+- Extended duration (14-60 days)
+- Affects both guilds' settlements
+
+Alliance Formation:
+- 1% daily chance for compatible guilds
+- Moderate severity (0.3-0.7)
+- Medium duration (7-21 days)
+- Creates cooperative relationships
+
+EVENT RESOLUTION SYSTEM
+========================
+
+Resolution Outcomes by Event Type
+----------------------------------
+
+Power Struggle:
+- leadership_change: New leadership, stability +10, influence -5
+- compromise: Moderate improvement, stability +5, influence +2
+- schism: Guild split, stability -20, members -30%
+- status_quo: No significant change
+
+Monopoly Grab:
+- monopoly_established: Market dominance, influence +15, monopoly +30
+- competition_emerges: Market pushback, influence -5, monopoly -10
+- government_intervention: Legal restrictions imposed
+- market_collapse: Economic failure
+
+Faction Alignment Shift:
+- new_alliance: Different faction loyalty
+- neutrality_restored: Removes faction alignment
+- deeper_conflict: Strengthens current alignment
+- faction_absorbed: Guild becomes faction subsidiary
+
+Regional Ban:
+- ban_upheld: Operations severely restricted
+- ban_overturned: Reputation restored
+- underground_operations: Illegal continuation
+- guild_relocates: Moves to different settlement
+
+Internal Collapse:
+- reorganization: Structural reform, stability recovery
+- complete_dissolution: Guild disbands
+- hostile_takeover: External control imposed
+- member_exodus: Mass departures
+
+Guild War:
+- decisive_victory: Clear winner emerges
+- pyrrhic_victory: Costly success
+- stalemate: Ongoing tension continues
+- mutual_destruction: Both guilds severely damaged
+
+Charter Revoked:
+- reinstatement: Legal status restored
+- appeal_successful: Court victory
+- permanent_ban: Legal dissolution
+- bribery_successful: Corruption resolves issue
+
+Daily Event Effects
+-------------------
+Events apply gradual effects during their duration:
+
+Power Struggle:
+- influence_change: -0.5 per day
+- stability_change: -1.0 per day
+
+Monopoly Grab:
+- influence_change: +1.0 per day
+- trade_efficiency: +0.5 per day
+
+Regional Ban:
+- influence_change: -2.0 per day
+- trade_efficiency: -1.5 per day
+
+All effects scaled by event severity (0.0-1.0 multiplier).
+
+INTEGRATION GUIDELINES
+======================
+
+Settlement System Integration
+-----------------------------
+Guild events affect settlements through:
+
+Trade Modifiers:
+- Monopoly events: ±10% trade efficiency
+- Guild wars: -severity×5% stability
+- Charter revocations: -severity×10% economic activity
+
+Settlement Reputation:
+- Events modify guild standing in settlements
+- Affects future event generation probability
+- Influences settlement governance decisions
+
+Faction System Integration
+--------------------------
+Political implications through faction_implications dict:
+
+Relationship Changes:
+- "strained": -severity×10 reputation
+- "allied": +severity×5 reputation  
+- "hostile": -severity×20 reputation
+
+Faction Goals:
+- Guild events can trigger faction objectives
+- Political factions may support/oppose guilds
+- Economic competition affects factional relations
+
+NPC System Integration
+----------------------
+Guild status affects NPC behavior:
+
+Job Assignment:
+- Guild efficiency modifies employment availability
+- Disbanded guilds eliminate professional positions
+- Guild wars reduce local employment stability
+
+Social Dynamics:
+- Guild reputation affects NPC interactions
+- Guild events generate rumors and social tension
+- Leadership changes create NPC loyalty shifts
+
+USAGE EXAMPLES
+==============
+
+Basic Event Generation
+----------------------
+```python
+from guild_event_engine import LocalGuild, generate_guild_events, apply_guild_events
+
+# Create guild
+merchants_guild = LocalGuild(
+    name="Goldport Merchants Collective",
+    guild_type=GuildType.MERCHANTS,
+    base_settlement="Goldport",
+    influence_score=75.0,
+    member_count=45
+)
+
+# Daily simulation loop
+active_events = []
+for day in range(1, 31):
+    # Generate new events
+    new_events = generate_guild_events([merchants_guild], day)
+    active_events.extend(new_events)
+    
+    # Apply all active events
+    results = apply_guild_events(active_events, [merchants_guild], current_day=day)
+    
+    # Remove concluded events
+    active_events = [e for e in active_events if e.active]
+    
+    # Update guild state
+    guild_changes = merchants_guild.update_daily_state(day)
+    
+    # Process narrative events
+    for narrative in results['narrative_events']:
+        print(f"Day {day}: {narrative['description']}")
+```
+
+Regional Guild Management
+-------------------------
+```python
+# Create regional guild from successful local guild
+regional_merchants = RegionalGuild(
+    name="Eastern Trade Consortium",
+    guild_type=GuildType.MERCHANTS,
+    headquarters="Goldport"
+)
+
+# Add local guild as chapter
+regional_merchants.add_chapter_guild(merchants_guild)
+
+# Monitor chapter loyalty
+if merchants_guild.member_loyalty < 60:
+    # Risk of chapter rebellion
+    rebellion_risk = (100 - merchants_guild.member_loyalty) / 100
+    if random.random() < rebellion_risk * 0.1:  # 10% max daily chance
+        regional_merchants.remove_chapter_guild(merchants_guild.guild_id, "rebellion")
+```
+
+Event-Driven Storytelling
+--------------------------
+```python
+# Generate narrative content from events
+def create_story_event(guild_event, affected_guild):
+    story = f"In {affected_guild.base_settlement}, "
+    story += guild_event.get_narrative_description()
+    
+    if guild_event.severity > 0.8:
+        story += " The situation has reached crisis levels."
+    elif guild_event.severity > 0.5:
+        story += " The community watches with concern."
+    else:
+        story += " Local citizens take note of the developments."
+    
+    return {
+        'title': f"{affected_guild.name} Faces {guild_event.event_type.replace('_', ' ').title()}",
+        'description': story,
+        'severity': guild_event.severity,
+        'day': guild_event.start_day,
+        'location': affected_guild.base_settlement
+    }
+```
+
+PERFORMANCE CONSIDERATIONS
+==========================
+
+Computational Complexity
+-------------------------
+- Event generation: O(n) where n = number of guilds
+- Event application: O(m) where m = number of active events  
+- Daily updates: O(n) for guild state updates
+- Total daily processing: O(n + m)
+
+Memory Usage
+------------
+- LocalGuild: ~2KB per instance
+- RegionalGuild: ~3KB per instance
+- GuildEvent: ~1KB per instance
+- Recommended: <1000 total guilds, <100 simultaneous events
+
+Optimization Strategies
+-----------------------
+1. Batch process daily updates
+2. Maintain active event index for faster lookup
+3. Limit event history retention (default: last 100 events)
+4. Use guild volatility to prioritize processing
+5. Cache frequently accessed guild summaries
+
+EXTENSIBILITY
+=============
+
+Adding New Event Types
+----------------------
+1. Define event in _generate_specific_guild_event()
+2. Add resolution outcomes in GuildEvent._determine_resolution()
+3. Specify daily effects in GuildEvent._calculate_daily_effects()
+4. Implement resolution effects in _apply_event_resolution()
+
+Custom Guild Types
+------------------
+Extend GuildType enum:
+```python
+class GuildType(Enum):
+    # Existing types...
+    ENTERTAINERS = "entertainers"
+    FARMERS = "farmers"
+    SMUGGLERS = "smugglers"
+```
+
+Integration Hooks
+-----------------
+The system provides hooks for:
+- Custom settlement effect calculations
+- Faction relationship modifications  
+- NPC behavior adaptations
+- Economic system integration
+- Caravan route management
+
+TROUBLESHOOTING
+===============
+
+Common Issues
+-------------
+
+1. Events Not Generating
+   - Check guild stability and conflict status
+   - Verify volatility calculation
+   - Ensure guild is not disbanded
+
+2. Unrealistic Event Frequency
+   - Adjust base probability (default: 0.02)
+   - Modify volatility multipliers
+   - Check for infinite event loops
+
+3. Guild State Inconsistencies
+   - Validate value clamping (0-100 ranges)
+   - Check for proper event effect application
+   - Verify daily state update calculations
+
+4. Performance Issues
+   - Monitor event count growth
+   - Implement event cleanup routines
+   - Consider guild count limitations
+
+Debug Output
+------------
+Enable detailed logging:
+```python
+import logging
+logging.basicConfig(level=logging.DEBUG)
+
+# Guild event details will be logged
+# Event generation probabilities displayed
+# State change tracking available
+```
+
+CHANGELOG
+=========
+
+Version 1.0.0 (Initial Release)
+- Complete LocalGuild and RegionalGuild implementation
+- Dynamic event generation system
+- 12 core event types with resolution mechanics
+- Settlement and faction integration hooks
+- Comprehensive test harness and examples
+
+FUTURE ENHANCEMENTS
+===================
+
+Planned Features
+----------------
+- Guild technology/innovation systems
+- International trade guild networks
+- Guild-based quest generation
+- Economic warfare mechanics
+- Guild diplomacy and treaty systems
+- Seasonal event modifiers
+- Historical significance tracking
+
+Integration Roadmap
+-------------------
+- Full settlement system integration
+- Advanced faction political mechanics
+- NPC career advancement through guilds
+- Economic market manipulation
+- Caravan route control systems
+- Player guild membership mechanics 

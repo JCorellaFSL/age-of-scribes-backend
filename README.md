@@ -1,10 +1,10 @@
-# Age of Scribes - Social Simulation Engine
+# Age of Scribes - Social Simulation Engine (SSE)
 
 **A comprehensive Python backend simulation engine for creating living, breathing social worlds with autonomous NPCs, dynamic settlements, emergent economies, and complex faction relationships.**
 
 ## 🌟 Overview
 
-Age of Scribes is a sophisticated social simulation engine designed to power narrative-driven games, interactive fiction, tabletop RPG campaigns, and educational simulations. The engine creates believable virtual societies where NPCs pursue their own goals, settlements evolve organically, economies respond to supply and demand, and factions vie for power - all without direct player intervention.
+Age of Scribes SSE is a sophisticated social simulation engine designed to power narrative-driven games, interactive fiction, tabletop RPG campaigns, and educational simulations. The engine creates believable virtual societies where NPCs pursue their own goals, settlements evolve organically, economies respond to supply and demand, and factions vie for power - all without direct player intervention.
 
 ## 🎯 Core Philosophy
 
