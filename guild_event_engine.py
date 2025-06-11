@@ -283,6 +283,22 @@ class LocalGuild:
         self.head_of_guild: Optional[str] = None  # Current leader NPC ID
         self.leadership_approval_rating: float = 80.0  # Current leader approval (0-100)
         
+        # Guild Vault & Resource Pooling integration
+        self.vault_id: str = f"vault_{self.guild_id}"  # Unique vault identifier
+        self.vault_resources: Dict[str, float] = {  # Pooled resources
+            'gold': 100.0 * member_count,  # Starting funds based on membership
+            'materials': 50.0 * member_count,
+            'tools': 10.0 * member_count,
+            'reagents': 5.0 * member_count
+        }
+        self.vault_access_policies: Dict[str, str] = {  # rank -> access level
+            'apprentice': 'deposit',
+            'journeyman': 'withdraw_limited',
+            'master': 'withdraw',
+            'guildmaster': 'full_access'
+        }
+        self.vault_log: List[Dict[str, Any]] = []  # Transaction history
+        
         # Add founding leadership
         founding_leader = self._generate_leader_name()
         self.leadership_history.append({
