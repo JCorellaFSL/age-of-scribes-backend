@@ -275,12 +275,25 @@ class LocalGuild:
         self.facilities: List[str] = []  # List of facility IDs owned by this guild
         self.headquarters: Optional[str] = None  # Primary facility ID (typically guildhall)
         
+        # Guild Elections & Leadership integration
+        self.election_cycle_days: int = 365  # Default annual elections
+        self.next_election_day: int = founding_year * 365 + 365  # Next election date
+        self.leadership_candidate_ids: List[str] = []  # Current election candidates
+        self.leadership_preferences: Dict[str, Dict[str, float]] = {}  # candidate -> preferences
+        self.head_of_guild: Optional[str] = None  # Current leader NPC ID
+        self.leadership_approval_rating: float = 80.0  # Current leader approval (0-100)
+        
         # Add founding leadership
+        founding_leader = self._generate_leader_name()
         self.leadership_history.append({
             'year': founding_year,
             'event': 'guild_founded',
-            'leader_name': self._generate_leader_name(),
-            'circumstances': 'founding'
+            'leader_name': founding_leader,
+            'leader_id': None,  # Placeholder for NPC system integration
+            'circumstances': 'founding',
+            'term_start': founding_year * 365,
+            'term_end': None,
+            'approval_rating': 80.0
         })
     
     def _generate_leader_name(self) -> str:

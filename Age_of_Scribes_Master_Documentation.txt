@@ -2589,10 +2589,118 @@ narrative possibilities, summits become memorable events with lasting consequenc
 The system supports both cooperative and competitive gameplay while maintaining
 consistency with broader game world systems.
 
+Guild Elections and Leadership System (guild_elections_system.py)
+================================================================
+
+The Guild Elections System provides comprehensive democratic governance for guilds
+through periodic elections, succession events, and internal power dynamics. The system
+handles leadership transitions, candidate campaigns, voting mechanisms, and political
+consequences of electoral outcomes.
+
+**OVERVIEW:**
+This system enables dynamic guild leadership that responds to member satisfaction,
+faction politics, and guild performance while providing rich opportunities for PC
+participation in guild governance and political maneuvering.
+
+**KEY FEATURES:**
+- Periodic election cycles with configurable frequency (default annual)
+- Multiple election types: scheduled, emergency, impeachment, succession, coup
+- Comprehensive campaign system with daily activities and faction involvement
+- Weighted voting based on member influence, approval ratings, and platform alignment
+- Full PC integration for candidacy, campaigning, and political maneuvering
+
+**CORE COMPONENTS:**
+1. GuildElection Class: Complete election event management from nomination to results
+2. Enhanced LocalGuild Class: Election cycle tracking and leadership history
+3. Political Action System: PC candidacy, vote manipulation, scandal investigation
+4. Campaign System: Daily activities, endorsements, and faction interference
+
+**ELECTION TYPES AND TRIGGERS:**
+- SCHEDULED: Regular democratic elections (365-day cycles)
+- EMERGENCY: Crisis-driven changes (stability < 25%, 5% daily chance)
+- IMPEACHMENT: Unpopular leader removal (approval < 30%, 10% daily chance)
+- SUCCESSION: Planned leadership transitions via charter mandates
+- COUP: Hostile takeover attempts during extreme instability
+
+**CAMPAIGN MECHANICS:**
+- 14-day campaign periods with daily activity processing
+- 5 campaign activities: speeches, meetings, outreach, negotiations, fundraising
+- Faction interference with 20% daily chance of involvement
+- Scandal generation and opposition research systems
+- PC candidates have enhanced effectiveness (80% vs 30-70% NPC base)
+
+**VOTING SYSTEM:**
+Weighted voting algorithm incorporating:
+- Candidate approval ratings and platform appeal
+- Campaign effectiveness and resource allocation
+- Faction endorsements and political backing
+- Guild type bonuses for policy alignment
+- Scandal penalties and PC candidate advantages
+- Variable voter turnout based on guild stability
+
+**OUTCOME CLASSIFICATION:**
+- Decisive Victory: 30%+ margin, +5 stability
+- Narrow Victory: 10-30% margin, +2 stability
+- Contested Result: 5-10% margin, -3 stability
+- Tie Broken: <5% margin, -5 stability, contested flag
+- No Confidence: No viable candidates, -15 stability
+
+**PC INTEGRATION:**
+Full political participation system:
+- Candidacy with platform definition and campaign management
+- Political maneuvering: vote manipulation, opposition research, coalition building
+- Discovery risks and reputation consequences for illicit actions
+- Leadership responsibilities including policy implementation and approval management
+
+**ENHANCED LOCALGUILD ATTRIBUTES:**
+- election_cycle_days: Time between scheduled elections
+- next_election_day: Day of next scheduled election
+- leadership_candidate_ids: Current election candidates
+- leadership_preferences: Candidate evaluation metrics
+- head_of_guild: Current leader NPC/PC ID
+- leadership_approval_rating: Current leader popularity
+
+**CORE FUNCTIONS:**
+- schedule_guild_election(): Determines if guild should hold election
+- conduct_guild_election(): Processes campaigns and voting
+- Campaign processing with daily activity simulation
+- Election result application and consequence management
+
+**INTEGRATION HOOKS:**
+- Guild Charter System: Election procedures and candidate eligibility
+- Faction Layer: Endorsements, funding, and political interference
+- Reputation Engine: Electoral promises, campaign conduct, leadership performance
+- Memory Core: NPC retention of political events and relationships
+- Settlement System: Regional political influence and stability effects
+- Rumor Engine: Campaign information and election result propagation
+
+**QUEST OPPORTUNITIES:**
+- Pre-Election: Campaign management, investigation, corruption exposure
+- During-Election: Election security, political maneuvering, crisis management
+- Post-Election: Dispute resolution, policy implementation, unity restoration
+
+**TECHNICAL SPECIFICATIONS:**
+- Memory usage: 3-8KB per active election
+- Election algorithm: O(n*m) for n candidates, m voting factors
+- Supports 50+ concurrent elections with 10+ candidates each
+- Complete historical tracking and political relationship persistence
+- Integration with 8+ existing systems for comprehensive political simulation
+
+**EXPANSION AREAS:**
+- Multi-guild regional elections and coalition governments
+- Advanced platform customization and policy implementation
+- Political party development and cross-guild movements
+- Integration with settlement-wide governance systems
+
+The Guild Elections System creates dynamic political environments that respond to
+member needs, faction pressures, and regional events. Through regular elections,
+emergency successions, and political maneuvering, the system generates compelling
+narratives while maintaining realistic democratic governance structures.
+
 ===============================================================================
 
 This master documentation consolidates all Age of Scribes system information.
 Individual documentation files have been merged here for efficiency.
 
 Status: PRODUCTION READY
-Systems: Settlement, Economy, NPC AI, Factions, Reputation, Justice, Guild Charter, Guild Summits, Supporting 
+Systems: Settlement, Economy, NPC AI, Factions, Reputation, Justice, Guild Charter, Guild Summits, Guild Elections, Supporting 
