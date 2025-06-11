@@ -268,6 +268,13 @@ class LocalGuild:
         self.leadership_history: List[Dict[str, Any]] = []
         self.last_update = datetime.now()
         
+        # Guild charter integration
+        self.charter: Optional['GuildCharter'] = None  # Will be set after creation
+        
+        # Guild Facilities & Holdings integration
+        self.facilities: List[str] = []  # List of facility IDs owned by this guild
+        self.headquarters: Optional[str] = None  # Primary facility ID (typically guildhall)
+        
         # Add founding leadership
         self.leadership_history.append({
             'year': founding_year,
@@ -679,6 +686,70 @@ class LocalGuild:
         # In a full implementation, would track individual member ranks
         # For now, return empty list as placeholder
         return []
+    
+    def apply_policy(self, policy_key: str, value: Any) -> None:
+        """
+        Apply a charter policy to the guild.
+        
+        Args:
+            policy_key: Key of the policy to apply
+            value: Value to set for the policy
+        """
+        if self.charter is None:
+            return
+        
+        # Apply policy based on key
+        if policy_key == 'violation_tolerance':
+            self.charter.violation_tolerance = max(0.0, min(1.0, float(value)))
+        elif policy_key == 'internal_reputation_impact':
+            self.charter.internal_reputation_impact = max(0.0, float(value))
+        elif policy_key == 'outlaw_status':
+            self.charter.is_outlawed = bool(value)
+        elif policy_key.startswith('membership_'):
+            # Update membership requirements
+            req_key = policy_key.replace('membership_', '')
+            if req_key in self.charter.membership_requirements:
+                self.charter.membership_requirements[req_key] = value
+        elif policy_key.startswith('punishment_'):
+            # Update punishment policy
+            offense = policy_key.replace('punishment_', '')
+            if isinstance(value, str):
+                self.charter.punishment_policy[offense] = value
+        elif policy_key.startswith('economic_'):
+            # Update economic rights
+            right_key = policy_key.replace('economic_', '')
+            if right_key in self.charter.economic_rights:
+                self.charter.economic_rights[right_key] = bool(value)
+    
+    def enforce_punishment(self, npc: 'NPCProfile', offense: str) -> None:
+        """
+        Enforce punishment on an NPC according to charter policy.
+        
+        Args:
+            npc: NPC to punish
+            offense: Type of offense committed
+        """
+        if self.charter is None:
+            return
+        
+        # Import punishment function to avoid circular imports
+        from guild_charter_system import process_guild_punishment
+        
+        # Process the punishment
+        punishment_result = process_guild_punishment(self, npc, offense)
+        
+        # Log the punishment event in guild history
+        if punishment_result.get('success', False):
+            self.historical_events.append({
+                'date': datetime.now(),
+                'type': 'charter_enforcement',
+                'member_id': npc.npc_id,
+                'member_name': npc.name,
+                'offense': offense,
+                'punishment': punishment_result.get('punishment_type', 'unknown'),
+                'effects': punishment_result.get('effects', []),
+                'details': f'Charter enforcement: {npc.name} punished for {offense}'
+            })
 
 
 class RegionalGuild:

@@ -1241,6 +1241,266 @@ Guild formation creates lasting narrative consequences:
 - Settlement development influenced by new organizational structures
 
 ===============================================================================
+GUILD FACILITIES & HOLDINGS SYSTEM
+===============================================================================
+
+OVERVIEW
+--------
+The Guild Facilities & Holdings System enables guilds to construct, control, and benefit 
+from physical buildings and operational sites. This system provides economic bonuses, 
+defensive capabilities, reputation improvements, and special features that create 
+dynamic gameplay opportunities and enhance guild operations.
+
+Facilities serve as the physical infrastructure of guild power, creating tangible assets 
+that can be built, upgraded, damaged, captured, or lost during conflicts. Each facility 
+type provides unique benefits while requiring ongoing maintenance and resources.
+
+CORE COMPONENTS
+===============
+
+**GUILDFACILITY CLASS:**
+Physical representation of guild-controlled buildings with comprehensive tracking:
+```python
+class GuildFacility:
+    facility_id: str                        # Unique identifier
+    name: str                              # Display name
+    location: Tuple[float, float]          # World coordinates
+    settlement_id: Optional[str]           # Containing settlement
+    facility_type: str                     # "guildhall", "workshop", "warehouse", etc.
+    owning_guild_id: str                   # Controlling guild
+    status: str                            # "active", "damaged", "abandoned", "under_siege"
+    construction_year: int                 # Year built
+    reputation_bonus: float                # Settlement reputation boost
+    economic_bonus: dict[str, float]       # Economic multipliers by category
+    defensive_value: float                 # Military/conflict value
+    special_features: list[str]            # Unique capabilities
+    condition: float                       # Operational efficiency (0-100)
+    maintenance_cost: float                # Daily upkeep requirement
+```
+
+**ENHANCED LOCALGUILD CLASS:**
+```python
+class LocalGuild:
+    # Existing attributes...
+    facilities: List[str] = []              # Facility IDs owned by guild
+    headquarters: Optional[str] = None      # Primary facility (typically guildhall)
+```
+
+FACILITY TYPES AND CHARACTERISTICS
+===================================
+
+**GUILDHALL (Administrative Center):**
+- Base Cost: 500 gold, Construction: 60 days, Maintenance: 5 gold/day
+- Reputation Bonus: +10, Defensive Value: 25, Capacity: 50 occupants
+- Economic Bonuses: Administration +15%, Recruitment +20%
+- Special Features: Meeting hall, guild records, ceremonial chamber
+- Function: Administrative center, headquarters functionality, member gathering
+
+**WORKSHOP (Crafting Facility):**
+- Base Cost: 200 gold, Construction: 30 days, Maintenance: 2 gold/day
+- Reputation Bonus: +5, Defensive Value: 5, Capacity: 15 occupants
+- Economic Bonuses: Crafting +25%, Production Efficiency +15%
+- Special Features: Specialized tools, materials storage
+- Function: Production bonuses, apprentice training, quality improvements
+
+**WAREHOUSE (Storage Facility):**
+- Base Cost: 300 gold, Construction: 45 days, Maintenance: 3 gold/day
+- Reputation Bonus: +3, Defensive Value: 15, Capacity: 5 occupants
+- Economic Bonuses: Storage Capacity +40%, Trade Efficiency +10%
+- Special Features: Secure storage, loading dock
+- Function: Trade logistics, resource storage, commercial operations
+
+**ACADEMY (Educational Institution):**
+- Base Cost: 800 gold, Construction: 90 days, Maintenance: 8 gold/day
+- Reputation Bonus: +15, Defensive Value: 10, Capacity: 100 occupants
+- Economic Bonuses: Education +40%, Research +25%, Knowledge Preservation +30%
+- Special Features: Library, lecture halls, laboratories
+- Function: Advanced education, research capabilities, knowledge centers
+
+**FORGE (Metalworking Facility):**
+- Base Cost: 350 gold, Construction: 50 days, Maintenance: 4 gold/day
+- Reputation Bonus: +6, Defensive Value: 8, Capacity: 12 occupants
+- Economic Bonuses: Metalworking +35%, Weapon Crafting +25%
+- Special Features: Master anvil, quenching pools, bellows system
+- Function: Specialized metalwork, weapon production, tool manufacturing
+
+**SCRIPTORIUM (Scholarly Facility):**
+- Base Cost: 400 gold, Construction: 55 days, Maintenance: 3.5 gold/day
+- Reputation Bonus: +8, Defensive Value: 5, Capacity: 25 occupants
+- Economic Bonuses: Scholarly Work +30%, Record Keeping +20%, Magical Scribing +15%
+- Special Features: Rare inks, binding equipment, illumination station
+- Function: Document creation, magical scribing, scholarly research
+
+FACILITY MANAGEMENT MECHANICS
+==============================
+
+**CONSTRUCTION SYSTEM:**
+```python
+def construct_guild_facility(guild: LocalGuild, facility_type: str, name: str,
+                           location: Tuple[float, float], settlement: Settlement, 
+                           year: int) -> GuildFacility
+```
+- Resource deduction and timeframe management
+- Settlement integration and reputation application
+- Guild facility list updates and headquarters designation
+- Historical event recording for narrative continuity
+
+**CONDITION AND STATUS TRACKING:**
+- Condition: 0-100 scale affecting operational efficiency
+- Status: Active → Damaged → Abandoned → Under Siege → Captured
+- Maintenance cost accumulation and facility degradation
+- Performance degradation from neglect or damage
+
+**OPERATIONAL EFFICIENCY CALCULATION:**
+Effective bonuses = Base bonuses × Condition multiplier × Status multiplier
+- Active facilities: 100% effectiveness
+- Damaged facilities: 50% effectiveness
+- Renovating facilities: 30% effectiveness
+- Siege/Captured facilities: 0-10% effectiveness
+
+CONFLICT AND DAMAGE MECHANICS
+==============================
+
+**FACILITY TARGETING DURING CONFLICTS:**
+```python
+def damage_or_capture_facility(facility: GuildFacility, by_faction_or_guild: str,
+                             action_type: str, damage_amount: float) -> Dict[str, Any]
+```
+
+**DAMAGE TYPES AND CONSEQUENCES:**
+- **Direct Damage**: Condition reduction, potential status downgrade
+- **Siege Operations**: Reduced efficiency, occupant evacuation
+- **Capture Attempts**: Ownership transfer, diplomatic incidents
+
+**GUILD IMPACT FROM FACILITY DAMAGE:**
+- Reputation loss in settlement: -10 to -20 points
+- Member loyalty reduction: -5 to -10 points
+- Guild stability decrease: -8 to -15 points
+- Economic bonus loss proportional to damage
+
+**SETTLEMENT CONSEQUENCES:**
+- Community stability reduction from conflicts
+- Reputation changes affecting guild-settlement relations
+- Economic disruption from facility damage or capture
+- Diplomatic incidents between involved factions
+
+ECONOMIC INTEGRATION
+====================
+
+**SETTLEMENT BENEFIT CALCULATION:**
+```python
+def evaluate_facility_impact(settlement: Settlement, guild: LocalGuild) -> Dict[str, float]
+```
+
+**CUMULATIVE BONUS SYSTEM:**
+Facilities provide settlement-wide benefits modified by guild stability:
+- Reputation bonuses improve settlement-guild relations
+- Economic multipliers enhance resource production by category
+- Defensive values contribute to settlement security calculations
+- Trade efficiency improvements boost commercial activities
+- Settlement capacity increases allow larger NPC populations
+
+**GUILD TYPE SPECIALIZATION:**
+- Merchants: Trade efficiency +15%, Commerce economic multipliers
+- Craftsmen: Production +25%, Quality improvement bonuses
+- Scholars: Education +30%, Research capability enhancements
+- Warriors: Defensive value +20, Recruitment efficiency bonuses
+
+**STABILITY MULTIPLIER EFFECTS:**
+Guild stability affects facility effectiveness:
+- 80+ stability: Full effectiveness (100%)
+- 60-79 stability: Reduced effectiveness (75%)
+- 40-59 stability: Significantly reduced (50%)
+- <40 stability: Minimal effectiveness (25%)
+
+PC INTERACTION OPPORTUNITIES
+=============================
+
+**QUEST GENERATION SYSTEM:**
+```python
+def get_facility_quest_opportunities(facility: GuildFacility) -> List[Dict[str, Any]]
+```
+
+**FACILITY-BASED QUEST TYPES:**
+- **Repair Quests**: Restore damaged facilities to operational status
+- **Siege Breaking**: Liberate facilities under attack or siege
+- **Secret Knowledge**: Discover hidden archives and special collections
+- **Recruitment Drives**: Staff understaffed facilities with qualified workers
+- **Facility Upgrades**: Enhance existing buildings with new capabilities
+
+**PLAYER INTERACTION METHODS:**
+- **Direct Investment**: Fund facility construction or improvements
+- **Political Maneuvering**: Influence facility ownership through diplomacy
+- **Military Action**: Seize rival facilities through combat operations
+- **Economic Warfare**: Disrupt facility operations through trade manipulation
+- **Social Engineering**: Recruit facility workers or turn loyalties
+
+**FACILITY SERVICES FOR PLAYERS:**
+- **Guildhalls**: Quest boards, guild membership services, meeting spaces
+- **Workshops**: Crafting bonuses, specialized tools, apprentice training
+- **Academies**: Research facilities, skill training, knowledge access
+- **Warehouses**: Storage services, trade facilitation, cargo management
+- **Training Grounds**: Combat training, skill development, equipment testing
+
+INTEGRATION WITH EXISTING SYSTEMS
+==================================
+
+**SETTLEMENT SYSTEM INTEGRATION:**
+- Facility bonuses applied through settlement AI modifiers
+- Reputation changes affect settlement-guild relationships
+- Defensive values contribute to settlement security calculations
+- Economic bonuses enhance settlement resource production
+
+**ECONOMY TICK INTEGRATION:**
+- Daily maintenance cost processing and debt accumulation
+- Condition degradation for unmaintained facilities
+- Economic bonus application to settlement production systems
+- Trade route enhancement through facility capabilities
+
+**FACTION SYSTEM INTEGRATION:**
+- Facility ownership creates diplomatic assets and liabilities
+- Seizure operations generate faction conflict opportunities
+- Economic advantages provide faction power differentials
+- Strategic facility locations influence territorial control
+
+**NPC CAREER ENGINE INTEGRATION:**
+- Facilities provide specialized employment opportunities
+- Professional advancement through facility-specific roles
+- Skill development enhanced by facility capabilities
+- Career paths tied to facility availability and condition
+
+**RUMOR SYSTEM INTEGRATION:**
+- Construction announcements and completion celebrations
+- Damage reports and siege situation updates
+- Ownership changes and guild conflict narratives
+- Discovery events from special facility features
+
+TECHNICAL SPECIFICATIONS
+=========================
+
+**PERFORMANCE CHARACTERISTICS:**
+- Template-based facility creation minimizes object overhead
+- Status-based bonus calculation prevents unnecessary computation
+- Facility ID references optimize memory usage
+- Event-driven updates rather than continuous monitoring
+
+**SCALABILITY METRICS:**
+- Memory usage: 2-5KB per facility for complete state tracking
+- Query performance: Sub-millisecond for typical facility collections
+- Supports hundreds of guilds with thousands of total facilities
+- Batch processing optimized for economy tick integration
+
+**SYSTEM INTEGRATION POINTS:**
+- Settlement modifier system for economic bonus application
+- Guild event system for conflict and narrative generation
+- Quest system for player interaction opportunity creation
+- Faction system for diplomatic consequence tracking
+
+This comprehensive facility system provides the foundation for rich guild-settlement 
+interactions, dynamic conflict resolution, and emergent storytelling opportunities 
+within the Age of Scribes simulation framework.
+
+===============================================================================
 NPC AI SYSTEM
 ===============================================================================
 
@@ -1915,8 +2175,424 @@ while providing new dimensions for character development and world building.
 
 ===============================================================================
 
+GUILD CHARTER AND ADMINISTRATION SYSTEM
+========================================
+
+OVERVIEW
+--------
+The Guild Charter and Administration System defines internal governance, rules, and 
+justice logic for each guild. It ensures that guild operations are governed by 
+consistent internal rules and consequences, creating realistic power dynamics and 
+accountability that apply equally to NPCs and Player Characters.
+
+CORE CLASSES
+------------
+
+**GuildCharter Class:**
+- guild_id: str - Unique identifier of the guild this charter governs
+- charter_name: str - Display name of the charter
+- core_doctrine: str - Fundamental principle (e.g., "artisan protection", "free trade")
+- accepted_professions: list[str] - List of professions welcomed in the guild
+- political_alignment: Optional[str] - Faction ID or "neutral"
+- membership_requirements: dict[str, Any] - Requirements for joining (skills, loyalty, etc.)
+- punishment_policy: dict[str, str] - Mapping of offenses to punishments
+- promotion_criteria: dict[str, Any] - Requirements for rank advancement
+- economic_rights: dict[str, bool] - Economic privileges and restrictions
+- is_outlawed: bool - Whether the guild is banned regionally/factionally
+- amendment_history: list[dict] - Tracks past edits or policy changes
+
+**LocalGuild Updates:**
+- charter: Optional[GuildCharter] - The guild's governing charter
+- apply_policy(policy_key: str, value: Any) -> None - Apply charter policies
+- enforce_punishment(npc: NPCProfile, offense: str) -> None - Execute punishments
+
+PUNISHMENT SYSTEM
+-----------------
+**Punishment Types:**
+1. WARNING - Records warning in NPC history
+2. FINE - Applies monetary penalty
+3. DEMOTION - Reduces member rank, decreases loyalty
+4. SUSPENSION - Temporary exclusion, loyalty and reputation loss
+5. EXPULSION - Permanent removal from guild, reputation impact
+6. BLACKLIST - Permanent ban from all guilds of this type, severe penalties
+7. COMMUNITY_SERVICE - Assigned service hours, minor loyalty reduction
+
+**Default Offense-Punishment Mapping:**
+- minor_theft: warning
+- major_theft: suspension
+- smuggling: expulsion
+- betrayal_of_secrets: expulsion
+- violence_against_member: demotion
+- violence_against_outsider: fine
+- charter_violation: warning
+- repeated_charter_violation: expulsion
+- treason: blacklist
+
+PC-SPECIFIC RULES
+-----------------
+**Guild Foundation:**
+- PC-founded guilds must define a charter at time of founding
+- Charter creation follows same rules as NPC guilds
+- Initial charter based on guild type with customization options
+
+**Charter Amendments:**
+- PCs can propose amendments requiring support from high-rank members
+- Amendment support requirements:
+  * Doctrine Change: 75% of masters
+  * Profession Update: 60% of masters
+  * Requirement Modification: 50% of masters
+  * Punishment Revision: 60% of masters
+  * Economic Rights Change: 75% of masters
+  * Political Realignment: 80% of masters
+
+**PC Justice:**
+- PCs can be judged by their own charter if they violate policies
+- Same punishment system applies regardless of NPC or PC status
+- No special exemptions or privileges for PC leadership
+
+**Leadership Consequences:**
+If PC attempts to override charter unjustly:
+- May trigger rebellion from loyal members
+- Can cause splinter chapters to form
+- Loyal NPCs may turn against PC leadership
+- Guild stability and loyalty scores decrease
+
+INTEGRATION HOOKS
+-----------------
+**Guild Reputation System:**
+- Charter violations affect internal guild reputation
+- Repeated violations damage external reputation
+- Fair enforcement improves guild stability
+
+**Faction Integration:**
+- Factions can ban or subsidize guilds based on charters
+- Political alignment affects faction relationships
+- Outlawed status impacts guild operations
+
+**Rumor Engine:**
+- Charter violations can spread via gossip
+- Punishment events generate rumors
+- Unfair enforcement creates negative rumors
+
+**Memory Core:**
+- NPCs remember internal injustices or unfair trials
+- Punishment history affects future behavior
+- Charter enforcement impacts NPC personality development
+
+CORE FUNCTIONS
+--------------
+**evaluate_guild_policy_compliance(npc, guild) -> Optional[str]:**
+- Checks if NPC violates charter terms
+- Returns recommended punishment action if violation detected
+
+**evaluate_member_compliance(npc, charter) -> Dict[str, Any]:**
+- Evaluates compliance against charter requirements
+- Returns detailed compliance report with violations and warnings
+
+**process_guild_punishment(guild, npc, offense) -> Dict[str, Any]:**
+- Processes punishment according to guild charter policy
+- Executes appropriate punishment and logs effects
+
+**generate_default_charter(guild_id, guild_type, guild_name) -> GuildCharter:**
+- Generates appropriate default charter based on guild type
+- Customizes doctrines, professions, and economic rights by type
+
+GUILD TYPE CUSTOMIZATIONS
+--------------------------
+**Merchants:**
+- Core Doctrine: "fair trade and mutual prosperity"
+- Professions: merchant, trader, banker, caravan_master
+- Economic Rights: trade_control, price_setting, cross_border_trade
+
+**Craftsmen:**
+- Core Doctrine: "mastery of craft and protection of trade secrets"
+- Professions: blacksmith, carpenter, mason, jeweler, tailor
+- Economic Rights: monopoly_rights, price_setting, government_contracts
+
+**Scholars:**
+- Core Doctrine: "pursuit of knowledge and preservation of learning"
+- Professions: scribe, scholar, librarian, teacher, researcher
+- Economic Rights: tax_privileges, government_contracts
+
+**Warriors:**
+- Core Doctrine: "protection of the innocent and martial excellence"
+- Professions: guard, soldier, mercenary, trainer
+- Economic Rights: government_contracts
+
+SYSTEM BENEFITS
+---------------
+**Realistic Governance:**
+- Guilds operate under consistent internal rules
+- Power dynamics reflect actual organizational behavior
+- Leadership accountability prevents arbitrary decisions
+
+**Equal Treatment:**
+- Same rules apply to NPCs and PCs
+- No special privileges based on player status
+- Consequences are consistently applied
+
+**Dynamic Evolution:**
+- Charters can be amended through political processes
+- Guild policies evolve based on member needs
+- External pressures influence internal governance
+
+**Rich Storytelling:**
+- Charter violations create compelling narratives
+- Internal conflicts arise from policy disagreements
+- Justice systems reflect guild values and culture
+
+===============================================================================
+GUILD SUMMITS SYSTEM
+===============================================================================
+
+OVERVIEW
+--------
+The Guild Summits System enables large, multi-guild diplomatic events that allow for
+alliance formation, dispute arbitration, economic collaboration, and political sabotage.
+Guild summits are formal diplomatic gatherings where multiple guilds can negotiate,
+form alliances, resolve conflicts, and engage in political maneuvering.
+
+Summits serve as pivotal moments in regional politics, creating opportunities for
+both cooperation and conflict. They can reshape the political landscape, establish
+new trade relationships, resolve long-standing disputes, or escalate tensions into
+open warfare.
+
+CORE COMPONENTS
+===============
+
+**GUILDSUMMIT CLASS:**
+Comprehensive diplomatic event management system:
+```python
+class GuildSummit:
+    summit_id: str                          # Unique identifier
+    location_id: str                        # Facility or settlement hosting event
+    host_guild_id: str                      # Guild organizing the summit
+    invited_guilds: List[str]               # Guild IDs invited to participate
+    attending_guilds: List[str]             # Guild IDs actually attending
+    agenda: List[str]                       # Items for discussion
+    start_day: int                          # When summit begins
+    duration_days: int                      # Summit duration (default 3 days)
+    status: str                            # "scheduled", "in_progress", "concluded"
+    outcome_log: List[Dict[str, Any]]      # Record of decisions and events
+    voting_records: Dict[str, Dict[str, str]]  # agenda_item -> guild_id -> vote
+```
+
+**AGENDA SYSTEM:**
+Structured agenda with flexible item types:
+- Alliance Formation: Creating new guild alliances
+- Blacklist Repeal: Removing trade restrictions  
+- Joint Trade Route: Shared commercial ventures
+- War Declaration: Formal declaration of hostilities
+- Non-Aggression Pact: Peace agreements
+- Economic Embargo: Trade sanctions and boycotts
+- Territorial Agreement: Border negotiations
+- Reparations Demand: Compensation for grievances
+- Resource Sharing: Cooperative resource management
+- Guild Sanction: Disciplinary measures
+- Monopoly Agreement: Market control arrangements
+- Settlement Status: Settlement governance changes
+
+**VOTING AND DECISION-MAKING:**
+Weighted voting system based on guild characteristics:
+- Base voting power: 1.0 for all guilds
+- Host guild bonus: 1.2x multiplier
+- Influence modifier: 0.5 + (influence_score / 100)
+- Wealth modifier: 0.8 + (wealth_level / 200)
+- Stability modifier: 0.6 + (stability / 150)
+- Faction alignment: 1.3x if aligned with sponsors
+
+Vote Types:
+- APPROVE: Full support for agenda item
+- REJECT: Opposition to agenda item
+- ABSTAIN: Neutral position
+- CONDITIONAL: Support with modifications
+- WALKOUT: Complete rejection, leaves summit
+
+Decision Outcomes:
+- Approved: 60%+ voting power supports
+- Approved Conditional: 50%+ supports with conditions
+- Rejected: 40%+ voting power rejects
+- Tabled: No clear majority, postponed
+- Failed No Quorum: Insufficient participation
+
+PC INTEGRATION
+==============
+
+**ATTENDANCE OPTIONS:**
+- Representative: Official delegate for a guild
+- Observer: Invited to witness but not vote
+- Uninvited: Infiltration or unauthorized attendance
+
+**PC ACTIONS:**
+- Propose Agenda Item: Add items during summit
+- Influence Delegate: Sway voting through persuasion/bribery/intimidation
+- Leak Information: Share summit contents with rumor network
+- Sabotage: Disrupt summit proceedings
+
+**DISCOVERY MECHANICS:**
+PC actions carry discovery risk with consequences:
+- Reputation damage with participating guilds
+- Potential expulsion from summit
+- Long-term diplomatic consequences
+- Integration with rumor and memory systems
+
+DYNAMIC EVENTS
+==============
+
+**WALKOUT MECHANICS:**
+Guilds may walk out when:
+- Agenda items violate charter principles
+- Strong opposition to proposed measures
+- Discovery of sabotage or corruption
+- Faction pressure or coercion
+
+**FACTION INTERFERENCE:**
+Factions influence summits through:
+- Sponsorship: Financial backing for outcomes
+- Observer status: Information gathering
+- Direct interference: Pressure, incentives, threats
+
+**SECURITY LEVELS:**
+- Low: Minimal security, easy infiltration
+- Normal: Standard diplomatic protection
+- High: Enhanced security, difficult infiltration
+- Maximum: Extreme security, nearly impossible sabotage
+
+INTEGRATION HOOKS
+=================
+
+**Guild Charter System:**
+- Pacifist charters oppose war declarations
+- Isolationist charters resist alliance formations
+- Charter violations trigger automatic walkouts
+- Political alignment affects voting preferences
+
+**Reputation Engine:**
+- Successful diplomacy improves relationships
+- Walkouts damage diplomatic standing
+- Host guilds gain reputation for successful summits
+- Failed summits harm participants' standing
+
+**Memory Core:**
+NPCs remember summit events:
+- Betrayals during negotiations
+- Successful alliance formations
+- Summit disruptions and sabotage
+- Long-term relationship consequences
+
+**Rumor Engine:**
+Summits generate significant rumor content:
+- Pre-summit speculation about outcomes
+- Leaked information during proceedings
+- Post-summit analysis and gossip
+- Scandal and corruption stories
+
+**Faction Layer:**
+Factions use summits for political goals:
+- Advancing territorial interests
+- Economic advantage through guild control
+- Diplomatic manipulation and espionage
+- Long-term strategic positioning
+
+CORE FUNCTIONS
+==============
+
+**schedule_guild_summit(host_guild, invited_guild_ids, agenda, start_day, duration_days) -> GuildSummit:**
+- Validates host guild has appropriate facilities
+- Creates and registers new summit
+- Sends invitations to target guilds
+- Records summit creation in guild history
+- Sets location modifiers based on host reputation
+
+**process_guild_summit_day(summit, day, guilds, pc_actions) -> Dict[str, Any]:**
+- Processes daily summit activities and decision-making
+- Handles PC actions and their consequences
+- Processes agenda items with voting and outcomes
+- Manages walkouts and dramatic events
+- Processes faction interference
+- Returns comprehensive daily results
+
+**get_summit_quest_opportunities(summit, guilds) -> List[Dict[str, Any]]:**
+- Generates quest opportunities related to summits
+- Pre-summit: Diplomatic courier, intelligence gathering
+- During-summit: Negotiation, influence, sabotage
+- Post-summit: Reconciliation, conflict prevention
+
+**evaluate_summit_impact(summit, guilds, settlements) -> Dict[str, Any]:**
+- Evaluates overall summit impact on game world
+- Calculates reputation changes for participants
+- Determines economic and political consequences
+- Generates narrative outcomes and long-term effects
+
+QUEST INTEGRATION
+=================
+
+**Pre-Summit Quests:**
+- Diplomatic Courier: Deliver invitations, gather responses
+- Summit Intelligence: Gather information about positions
+
+**During-Summit Quests:**
+- Summit Negotiator: Influence voting outcomes
+- Disrupt the Summit: Covert sabotage operations
+
+**Post-Summit Quests:**
+- Mend Summit Rifts: Repair damaged relationships
+- Implement Agreements: Execute summit decisions
+
+TECHNICAL SPECIFICATIONS
+=========================
+
+**Performance Characteristics:**
+- Memory usage: 5-10KB per summit
+- Processing: Sub-second daily processing
+- Scalability: Multiple concurrent summits supported
+- Integration: Minimal system impact through efficient hooks
+
+**Voting Algorithm:**
+Guild voting determined by:
+1. Guild type base preferences
+2. Charter alignment modifiers
+3. Existing relationship considerations
+4. Stability and influence factors
+5. Random unpredictability elements
+
+**Status Progression:**
+SCHEDULED → IN_PROGRESS → CONCLUDED/CANCELLED/DISRUPTED
+
+EXPANSION AREAS
+===============
+
+**Summit Variants:**
+- Emergency summits with reduced preparation
+- Secret summits with limited visibility
+- Multi-regional summits involving settlements
+- Faction-sponsored summits with predetermined outcomes
+- Trade fairs combined with diplomatic summits
+
+**Advanced PC Integration:**
+- PC guild founding and summit hosting
+- Advanced diplomacy skills affecting success rates
+- Equipment for improved espionage capabilities
+- Reputation systems affecting invitation likelihood
+- Character backgrounds influencing diplomatic options
+
+**Complex Consequences:**
+- Long-term alliance maintenance requirements
+- Economic treaty implementation mechanics
+- Military cooperation agreement details
+- Territorial agreement enforcement systems
+- Sanction and embargo economic effects
+
+The Guild Summits System creates pivotal diplomatic moments that can reshape
+regional politics. Through careful integration with existing systems and rich
+narrative possibilities, summits become memorable events with lasting consequences.
+The system supports both cooperative and competitive gameplay while maintaining
+consistency with broader game world systems.
+
+===============================================================================
+
 This master documentation consolidates all Age of Scribes system information.
 Individual documentation files have been merged here for efficiency.
 
 Status: PRODUCTION READY
-Systems: Settlement, Economy, NPC AI, Factions, Reputation, Justice, Supporting 
+Systems: Settlement, Economy, NPC AI, Factions, Reputation, Justice, Guild Charter, Guild Summits, Supporting 

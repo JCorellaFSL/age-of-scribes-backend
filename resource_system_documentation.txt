@@ -1,0 +1,393 @@
+# Mercantile Resource System Documentation
+
+## Overview
+
+The Mercantile Resource System provides a structured, scalable framework for managing tradeable goods in the Age of Scribes simulation. The system categorizes resources by type, rarity, and attributes that affect trade desirability, faction interactions, and economic simulation.
+
+## Core Design Principles
+
+### 1. Structured Classification
+Resources are organized by:
+- **Category**: Primary classification (food, material, luxury, etc.)
+- **Subtype**: Specific classification within category
+- **Rarity**: Availability level affecting pricing and distribution
+- **Tags**: Descriptive attributes affecting behavior
+
+### 2. Economic Integration
+Each resource includes:
+- **Trade Modifiers**: Affect profitability and desirability
+- **Physical Properties**: Weight and volume for transport calculations
+- **Market Dynamics**: Supply/demand factors and pricing
+
+### 3. Faction Mechanics
+Resources can have:
+- **Cultural Significance**: Special value to specific factions
+- **Restrictions**: Ideological or legal limitations
+- **Diplomatic Impact**: Influence on faction relationships
+
+## Resource Schema
+
+```python
+@dataclass
+class Resource:
+    name: str                           # Human-readable name
+    category: str                       # 'food', 'material', 'luxury', etc.
+    subtype: str                        # Specific classification
+    rarity: str                         # 'common', 'uncommon', 'rare', 'regional', 'legendary'
+    tags: List[str]                     # Descriptive tags affecting behavior
+    trade_modifier: float               # +/- value affecting desirability and profit margins
+    faction_restricted: bool = False    # Restricted by ideology or law
+    magic_affinity: float = 0.0         # 0.0–1.0 scale for enchantment systems
+    
+    # Economic attributes
+    base_price: float = 1.0             # Base economic value
+    weight: float = 1.0                 # Physical weight (affects transport)
+    volume: float = 1.0                 # Storage volume required
+    shelf_life: Optional[int] = None    # Days before spoilage (None = no spoilage)
+    
+    # Production and availability
+    production_time: int = 1            # Days to produce one unit
+    production_requirements: List[str] = field(default_factory=list)
+    seasonal_availability: Optional[List[str]] = None
+    regional_origins: List[str] = field(default_factory=list)
+    
+    # Trade and faction attributes
+    cultural_significance: Dict[str, float] = field(default_factory=dict)
+    diplomatic_weight: float = 0.0
+    contraband_regions: List[str] = field(default_factory=list)
+    
+    resource_id: str = field(default_factory=lambda: str(uuid.uuid4()))
+```
+
+## Resource Categories
+
+### Food Resources
+- **Purpose**: Sustenance and feast goods
+- **Properties**: Often perishable, seasonal availability
+- **Examples**: Cattle Meat, Deer Meat, Large Fish, Leafy Greens, Grain, Exotic Spices
+
+**Key Subtypes:**
+- `protein_large` - High-value protein sources (cattle, large fish)
+- `protein_medium` - Medium protein sources (deer, small livestock)
+- `greens` - Vegetable matter (leafy greens, herbs)
+- `staple` - Basic sustenance (grain, bread)
+- `seasoning` - Flavor enhancers (spices, salt)
+
+### Material Resources
+- **Purpose**: Construction, crafting, industrial use
+- **Properties**: Often heavy, durable, regional availability
+- **Examples**: Stone, Iron Ore, Gold, Hardwood Timber, Fine Clay
+
+**Key Subtypes:**
+- `stone_durable` - Building stone and quarried materials
+- `metal_industrial` - Industrial metals (iron, copper)
+- `metal_precious` - Precious metals (gold, silver)
+- `wood_quality` - High-grade timber for crafting
+- `ceramic` - Clay and pottery materials
+
+### Luxury Resources
+- **Purpose**: Prestige, diplomacy, cultural significance
+- **Properties**: High value, often faction-restricted
+- **Examples**: Silk Cloth, Living Ink, Jeweled Ornaments, Ancient Texts
+
+**Key Subtypes:**
+- `textile_fine` - Premium fabrics and clothing
+- `magic_component` - Magical materials and reagents
+- `jewelry` - Ornamental and precious items
+- `knowledge` - Books, scrolls, information
+
+## Rarity System
+
+### Common (0.8-1.2x base price)
+- Widely available
+- Standard trade goods
+- Low transport risk
+- Stable pricing
+
+### Uncommon (1.2-1.8x base price)
+- Limited availability
+- Seasonal or skill-dependent
+- Moderate profit margins
+- Regional variation
+
+### Rare (1.8-3.0x base price)
+- Scarce resources
+- High profit potential
+- Increased transport risk
+- Market volatility
+
+### Regional (2.0-4.0x base price)
+- Location-specific availability
+- High transport costs
+- Extreme price variation by region
+- Cultural significance
+
+### Legendary (5.0-10.0x base price)
+- Extremely rare
+- Unique or magical properties
+- Extreme risk and reward
+- Faction implications
+
+## Integration Systems
+
+### Economy Tick System Integration
+
+The resource system integrates with settlement economics through:
+
+```python
+def integrate_with_economy_tick(settlement_data: Dict[str, Any], 
+                               resource_flows: Dict[str, float]) -> Dict[str, Any]:
+    # Calculate trade balance adjustments
+    # Apply resource trade modifiers
+    # Update settlement economic indicators
+```
+
+**Benefits:**
+- Trade modifiers affect import/export balance
+- Resource-specific economic impacts
+- Seasonal availability affects market cycles
+- Faction restrictions influence trade patterns
+
+### Caravan System Integration
+
+Resources affect caravan operations through:
+
+```python
+def integrate_with_caravan_system(caravan_data: Dict[str, Any],
+                                 cargo_manifest: List[Tuple[str, int]]) -> Dict[str, Any]:
+    # Calculate cargo value and risk
+    # Apply weight/volume constraints
+    # Determine prestige cargo effects
+```
+
+**Features:**
+- Weight and volume affect capacity utilization
+- Rarity and faction restrictions increase risk
+- Trade modifiers affect profit calculations
+- Prestige cargo influences caravan reputation
+
+### Faction System Integration
+
+Resources interact with factions through:
+
+```python
+def integrate_with_faction_system(faction_data: Dict[str, Any],
+                                 available_resources: List[str]) -> Dict[str, Any]:
+    # Calculate cultural significance values
+    # Apply faction restrictions
+    # Update influence based on resource access
+```
+
+**Mechanisms:**
+- Cultural significance affects faction influence
+- Restricted resources gate certain factions
+- Diplomatic weight influences relationships
+- Contraband regions create conflict opportunities
+
+## Core Functions
+
+### Resource Registry Management
+
+**ResourceRegistry Class:**
+- Central repository for all resource definitions
+- Query interfaces by category, rarity, tags
+- Pricing calculations with market factors
+- Integration with other game systems
+
+**Key Methods:**
+- `register_resource(resource)` - Add new resource
+- `get_resource(name)` - Retrieve by name
+- `get_resources_by_category(category)` - Filter by category
+- `calculate_resource_price(name, region, supply, demand)` - Dynamic pricing
+
+### Trade Analysis Functions
+
+**evaluate_trade_opportunities(origin, destination, capacity, risk_tolerance):**
+- Analyzes profit potential between regions
+- Considers transport costs and risks
+- Filters by risk tolerance
+- Returns sorted opportunity list
+
+**calculate_caravan_load_efficiency(resources, caravan_capacity):**
+- Optimizes cargo selection for capacity
+- Calculates weight/volume constraints
+- Determines value density
+- Identifies over-capacity situations
+
+### Market Simulation
+
+**simulate_market_fluctuation(region, days):**
+- Models supply/demand changes over time
+- Applies seasonal effects
+- Includes random market events
+- Provides price history data
+
+**get_seasonal_resources(season, region):**
+- Filters resources by seasonal availability
+- Considers regional production patterns
+- Supports agricultural cycles
+- Enables seasonal trade planning
+
+## Usage Examples
+
+### Basic Resource Creation
+```python
+from resource_system import Resource, get_resource_registry
+
+# Create a new resource
+new_resource = Resource(
+    name="Dragon Scale",
+    category="material",
+    subtype="exotic_component",
+    rarity="legendary",
+    tags=["magical", "armor_component", "rare"],
+    trade_modifier=2.0,
+    faction_restricted=True,
+    magic_affinity=0.9,
+    base_price=500.0,
+    weight=0.5,
+    volume=0.2,
+    contraband_regions=["anti_magic_kingdom"],
+    cultural_significance={"mage_guild": 3.0}
+)
+
+# Register with the system
+registry = get_resource_registry()
+registry.register_resource(new_resource)
+```
+
+### Trade Opportunity Analysis
+```python
+from resource_system import evaluate_trade_opportunities
+
+# Find profitable trade routes
+opportunities = evaluate_trade_opportunities(
+    origin_region="farmlands",
+    destination_region="mountain_city",
+    caravan_capacity=200.0,
+    risk_tolerance=0.7
+)
+
+for opportunity in opportunities[:5]:  # Top 5 opportunities
+    print(f"Resource: {opportunity['resource_name']}")
+    print(f"Profit Margin: {opportunity['profit_margin']:.1%}")
+    print(f"Risk Level: {opportunity['risk_score']:.2f}")
+    print(f"Recommendation: {opportunity['recommendation']}")
+```
+
+### Caravan Load Optimization
+```python
+from resource_system import calculate_caravan_load_efficiency
+
+# Optimize caravan cargo
+cargo = [
+    ("Cattle Meat", 10),
+    ("Iron Ore", 5),
+    ("Silk Cloth", 3)
+]
+
+efficiency = calculate_caravan_load_efficiency(cargo, caravan_capacity=150.0)
+
+print(f"Capacity Used: {efficiency['capacity_efficiency']:.1%}")
+print(f"Total Value: {efficiency['total_value']:.0f} gold")
+print(f"Value per Capacity: {efficiency['value_per_capacity']:.2f}")
+```
+
+### Faction Resource Access
+```python
+from resource_system import get_faction_preferred_resources
+
+# Get culturally significant resources for a faction
+preferred = get_faction_preferred_resources("scholar_faction")
+
+for resource in preferred:
+    significance = resource.cultural_significance["scholar_faction"]
+    print(f"{resource.name}: {significance:.1f} cultural value")
+```
+
+## Expansion Guidelines
+
+### Adding New Resources
+
+1. **Define Core Properties**:
+   - Choose appropriate category and subtype
+   - Set rarity based on intended availability
+   - Define meaningful tags for behavior
+
+2. **Economic Balance**:
+   - Set base_price relative to existing resources
+   - Apply trade_modifier to influence profitability
+   - Consider weight/volume for transport balance
+
+3. **Faction Integration**:
+   - Add cultural_significance for relevant factions
+   - Set faction_restricted for exclusive resources
+   - Define contraband_regions for conflict zones
+
+4. **Regional Considerations**:
+   - Specify regional_origins for geographic realism
+   - Set seasonal_availability for agricultural goods
+   - Consider production_requirements for crafted items
+
+### Creating New Categories
+
+1. **Define Category Enum**:
+   ```python
+   class ResourceCategory(Enum):
+       NEW_CATEGORY = "new_category"
+   ```
+
+2. **Establish Subtypes**:
+   - Create meaningful subtype classifications
+   - Consider how subtypes interact with game systems
+   - Ensure subtypes support different use cases
+
+3. **Integration Hooks**:
+   - Update integration functions for new category
+   - Consider special behaviors for the category
+   - Add category-specific query methods
+
+## Performance Considerations
+
+### Memory Efficiency
+- Resource definitions loaded once at startup
+- Efficient indexing by category, rarity, and tags
+- Minimal runtime object creation
+
+### Query Optimization
+- Pre-built indices for common queries
+- Cached calculations for expensive operations
+- Batch processing for multiple resource operations
+
+### Scalability Targets
+- Support for 500+ unique resources
+- Sub-millisecond query response times
+- Efficient integration with 1000+ settlement simulation
+
+## System Benefits
+
+### Realistic Economics
+- Supply and demand affect pricing
+- Transport costs influence trade decisions
+- Seasonal cycles create market opportunities
+- Regional specialization drives trade
+
+### Rich Faction Interactions
+- Cultural preferences create diplomatic tools
+- Resource restrictions generate conflict
+- Trade relationships affect faction power
+- Economic warfare through resource control
+
+### Emergent Gameplay
+- Player decisions affect resource availability
+- Market manipulation opportunities
+- Trade route optimization challenges
+- Resource-based quest and conflict generation
+
+### Simulation Depth
+- Interconnected economic systems
+- Realistic resource scarcity
+- Dynamic market responses
+- Seasonal and regional variation
+
+This resource system provides the foundation for a rich, interconnected economic simulation that enhances gameplay through meaningful trade decisions, faction interactions, and emergent market dynamics. 

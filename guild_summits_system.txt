@@ -1,0 +1,505 @@
+Guild Summits System Documentation
+===================================
+
+Version: 1.0.0
+Last Updated: 2025-01-23
+
+OVERVIEW
+========
+
+The Guild Summits System enables large, multi-guild diplomatic events that allow for
+alliance formation, dispute arbitration, economic collaboration, and political sabotage.
+Guild summits are formal diplomatic gatherings where multiple guilds can negotiate,
+form alliances, resolve conflicts, and engage in political maneuvering.
+
+Summits serve as pivotal moments in regional politics, creating opportunities for
+both cooperation and conflict. They can reshape the political landscape, establish
+new trade relationships, resolve long-standing disputes, or escalate tensions into
+open warfare.
+
+CORE COMPONENTS
+===============
+
+1. GuildSummit Class
+   - Comprehensive diplomatic event management
+   - Agenda system with flexible item addition
+   - Voting and decision-making mechanics
+   - PC integration for participation and influence
+   - Dynamic event generation including walkouts and sabotage
+
+2. Multi-Day Processing System
+   - Daily agenda item processing
+   - Progressive decision-making over summit duration
+   - Dynamic attendance tracking with walkout mechanics
+   - Faction interference and PC action integration
+
+3. Integration Functions
+   - schedule_guild_summit(): Summit creation and validation
+   - process_guild_summit_day(): Daily event processing
+   - PC action system for diplomatic influence and sabotage
+
+KEY FEATURES
+============
+
+Summit Management
+-----------------
+Summits are scheduled events with specific start dates, duration, and invited guilds.
+The host guild must have appropriate facilities (headquarters or major settlement access)
+and provide adequate advance notice (minimum 7 days).
+
+Core Attributes:
+- summit_id: Unique identifier for tracking
+- host_guild_id: Guild organizing the summit
+- location_id: Facility or settlement hosting the event
+- invited_guilds: List of guild IDs invited to participate
+- attending_guilds: List of guild IDs actually attending
+- agenda: List of agenda items for discussion
+- start_day: When the summit begins
+- duration_days: How long the summit lasts (default 3 days)
+
+Agenda System
+-------------
+Summits operate on a structured agenda system with multiple types of items:
+
+Agenda Item Types:
+- Alliance Formation: Creating new guild alliances
+- Blacklist Repeal: Removing trade or diplomatic restrictions
+- Joint Trade Route: Establishing shared commercial ventures
+- War Declaration: Formal declaration of hostilities
+- Non-Aggression Pact: Peace agreements between guilds
+- Economic Embargo: Trade sanctions and boycotts
+- Territorial Agreement: Border and territory negotiations
+- Reparations Demand: Compensation for past grievances
+- Resource Sharing: Cooperative resource management
+- Guild Sanction: Disciplinary measures against guilds
+- Monopoly Agreement: Market control arrangements
+- Settlement Status: Changes to settlement governance
+
+Agenda Flexibility:
+- Rigid: No new items can be added
+- Limited: Maximum 2 additional items
+- Moderate: Maximum 5 additional items (default)
+- Flexible: Maximum 10 additional items
+
+Voting and Decision-Making
+--------------------------
+Each guild has voting power calculated based on multiple factors:
+- Base voting power: 1.0 for all guilds
+- Host guild bonus: 1.2x multiplier
+- Influence modifier: 0.5 + (influence_score / 100)
+- Wealth modifier: 0.8 + (wealth_level / 200)
+- Stability modifier: 0.6 + (stability / 150)
+- Faction alignment: 1.3x if aligned with summit sponsors
+
+Vote Types:
+- APPROVE: Full support for the agenda item
+- REJECT: Opposition to the agenda item
+- ABSTAIN: Neutral position, no strong opinion
+- CONDITIONAL: Support with modifications or conditions
+- WALKOUT: Complete rejection, leaves the summit
+
+Decision Outcomes:
+- Approved: 60%+ of voting power supports
+- Approved Conditional: 50%+ supports with conditions
+- Rejected: 40%+ voting power rejects
+- Tabled: No clear majority, postponed for future consideration
+- Failed No Quorum: Insufficient participation due to walkouts
+
+PC INTEGRATION
+==============
+
+Attendance Options
+------------------
+PCs can participate in summits through several roles:
+- Representative: Official delegate for a guild
+- Observer: Invited to witness but not vote
+- Uninvited: Infiltration or unauthorized attendance
+
+PC Actions During Summits
+--------------------------
+**Propose Agenda Item:**
+- Add new items to the summit agenda
+- Success depends on summit flexibility and priority level
+- Higher priority items get earlier discussion
+
+**Influence Delegate:**
+- Attempt to sway guild voting through various methods
+- Persuasion: Low risk, moderate success rate
+- Bribery: High success rate, high discovery risk
+- Intimidation: Moderate success, reputation damage risk
+
+**Leak Information:**
+- Share summit contents with rumor network
+- Always successful but carries discovery risk
+- Can influence public opinion about summit outcomes
+
+**Sabotage:**
+- Disrupt summit proceedings
+- High risk, high impact if successful
+- Can change summit status to "disrupted"
+- Severe reputation consequences if discovered
+
+Discovery Mechanics
+-------------------
+PC actions carry discovery risk based on:
+- Action type (sabotage = highest risk)
+- Summit security level
+- Random chance factors
+
+Discovery consequences:
+- Reputation damage with participating guilds
+- Potential expulsion from summit
+- Long-term diplomatic consequences
+- Integration with rumor and memory systems
+
+DYNAMIC EVENTS
+==============
+
+Walkout Mechanics
+-----------------
+Guilds may walk out of summits when:
+- Agenda items violate their charter principles
+- Strong opposition to proposed measures
+- Discovery of sabotage or corruption
+- Faction pressure or coercion
+
+Walkout consequences:
+- Loss of voting power for remaining items
+- Potential cascade effects (other guilds following)
+- Diplomatic incidents and reputation damage
+- Long-term relationship deterioration
+
+Faction Interference
+--------------------
+Factions can influence summits through:
+- Sponsorship: Financial backing for specific outcomes
+- Observer status: Information gathering and influence
+- Direct interference: Pressure, incentives, or threats
+
+Interference types:
+- Pressure Delegates: Coercion tactics
+- Offer Incentives: Economic or political rewards
+- Threaten Consequences: Punishment for non-compliance
+- Provide Information: Intelligence to influence decisions
+
+Security Levels
+---------------
+Summits operate at different security levels:
+- Low: Minimal security, easy infiltration and sabotage
+- Normal: Standard diplomatic protection
+- High: Enhanced security, difficult PC infiltration
+- Maximum: Extreme security, nearly impossible sabotage
+
+Security affects:
+- PC action success rates
+- Discovery risk for covert actions
+- Faction interference opportunities
+- Overall summit stability
+
+INTEGRATION HOOKS
+=================
+
+Guild Charter System
+--------------------
+Guild charters significantly influence summit participation:
+- Pacifist charters oppose war declarations
+- Isolationist charters resist alliance formations
+- Charter violations can trigger automatic walkouts
+- Political alignment affects voting preferences
+
+Reputation Engine
+-----------------
+Summit outcomes affect inter-guild reputation:
+- Successful diplomacy improves relationships
+- Walkouts damage diplomatic standing
+- Host guilds gain reputation for successful summits
+- Failed summits harm all participants' standing
+
+Memory Core Integration
+-----------------------
+NPCs remember summit events:
+- Betrayals during negotiations
+- Successful alliance formations
+- Summit disruptions and sabotage
+- Long-term consequences for guild relationships
+
+Rumor Engine Integration
+------------------------
+Summits generate significant rumor content:
+- Pre-summit speculation about outcomes
+- Leaked information during proceedings
+- Post-summit analysis and gossip
+- Scandal and corruption stories
+
+Settlement System
+-----------------
+Summits affect host settlements:
+- Economic benefits from hosting
+- Reputation changes based on outcomes
+- Security concerns during events
+- Long-term diplomatic relationships
+
+Faction Layer
+-------------
+Factions use summits for political goals:
+- Advancing territorial interests
+- Economic advantage through guild control
+- Diplomatic manipulation and espionage
+- Long-term strategic positioning
+
+TECHNICAL SPECIFICATIONS
+=========================
+
+GuildSummit Class
+-----------------
+Core attributes for summit management:
+- Comprehensive tracking of all summit aspects
+- Dynamic status management through summit lifecycle
+- Flexible agenda system with priority handling
+- Complex voting power calculation
+- Multi-day event processing capability
+
+Key methods:
+- add_agenda_item(): Dynamic agenda modification
+- process_invitation_response(): Attendance management
+- get_voting_power(): Weighted voting calculation
+- evaluate_agenda_item_support(): Predictive voting analysis
+- get_summit_summary(): Comprehensive status reporting
+
+Status Progression:
+SCHEDULED → IN_PROGRESS → CONCLUDED/CANCELLED/DISRUPTED
+
+Voting Algorithm
+----------------
+Guild voting preferences determined by:
+1. Guild type base preferences
+2. Charter alignment modifiers
+3. Existing relationship considerations
+4. Stability and influence factors
+5. Random unpredictability elements
+
+Final vote calculation:
+total_score = base_preference + charter_modifier + relationship_modifier + 
+              stability_modifier + influence_modifier + random_factor
+
+Vote thresholds:
+- > 0.6: APPROVE
+- > 0.2: CONDITIONAL
+- > -0.2: ABSTAIN
+- > -0.6: REJECT
+- <= -0.6: WALKOUT
+
+CORE FUNCTIONS
+==============
+
+schedule_guild_summit()
+-----------------------
+**Purpose:** Create and validate new guild summits
+**Parameters:**
+- host_guild: Guild object hosting the summit
+- invited_guild_ids: List of guild IDs to invite
+- agenda: List of agenda items for discussion
+- start_day: When summit should begin
+- duration_days: Summit duration (default 3 days)
+- location_override: Specific location if not using headquarters
+
+**Validation Requirements:**
+- Host guild must have functional headquarters or major settlement access
+- Minimum 7 days advance notice required
+- Non-empty invitation list and agenda
+- Valid start day (must be in future)
+
+**Integration:**
+- Records summit creation in host guild history
+- Sets location modifiers based on host guild reputation
+- Initializes all summit tracking systems
+
+process_guild_summit_day()
+--------------------------
+**Purpose:** Process daily summit activities and decision-making
+**Parameters:**
+- summit: GuildSummit object to process
+- day: Current simulation day
+- guilds: List of all guild objects
+- pc_actions: Optional PC actions for the day
+
+**Daily Processing:**
+1. Validate summit should be active
+2. Process PC actions first (can influence outcomes)
+3. Determine agenda items for the day
+4. Process voting and decision-making
+5. Handle walkouts and dramatic events
+6. Process faction interference
+7. Record all outcomes and consequences
+
+**Returns:** Comprehensive daily results including:
+- Agenda items processed
+- Votes cast and decisions made
+- Dramatic events and walkouts
+- PC actions and their consequences
+- Faction interference effects
+
+QUEST INTEGRATION
+=================
+
+Pre-Summit Quests
+------------------
+**Diplomatic Courier:**
+- Deliver invitations and gather responses
+- Resolve diplomatic concerns before summit
+- Difficulty: Easy, Rewards: Reputation, connections
+
+**Summit Intelligence:**
+- Gather information about guild positions
+- Discover hidden agendas and alliance opportunities
+- Difficulty: Medium, Rewards: Information, influence
+
+During-Summit Quests
+--------------------
+**Summit Negotiator:**
+- Influence voting outcomes
+- Broker compromise agreements
+- Difficulty: Hard, Rewards: Political influence, guild favor
+
+**Disrupt the Summit:**
+- Covert sabotage for rival factions
+- High-risk, high-reward espionage
+- Difficulty: Very Hard, Rewards: Faction favor, blackmail material
+
+Post-Summit Quests
+-------------------
+**Mend Summit Rifts:**
+- Repair relationships damaged during summit
+- Prevent escalation to open conflict
+- Difficulty: Medium, Rewards: Diplomatic achievement, peace bonus
+
+PERFORMANCE CONSIDERATIONS
+===========================
+
+The Guild Summits System is designed for efficiency and scalability:
+
+Memory Usage:
+- Each summit requires approximately 5-10KB of memory
+- Scales linearly with number of agenda items and participants
+- Historical data maintained for narrative continuity
+
+Processing Efficiency:
+- Daily processing optimized for batch operations
+- Vote calculations use cached guild data
+- Event generation uses weighted random selection
+- Integration hooks designed for minimal system impact
+
+Concurrency:
+- Multiple summits can run simultaneously
+- Cross-summit interactions handled through faction interference
+- PC actions processed in order of declaration
+
+EXPANSION GUIDELINES
+====================
+
+Adding New Agenda Item Types
+-----------------------------
+1. Define new AgendaItemType enum value
+2. Add classification logic to _classify_agenda_item()
+3. Create guild type preference mappings
+4. Design consequence generation logic
+5. Add quest integration opportunities
+
+Summit Variants
+---------------
+Future expansion could include:
+- Emergency summits with reduced preparation time
+- Secret summits with limited visibility
+- Multi-regional summits involving settlements
+- Faction-sponsored summits with predetermined outcomes
+- Trade fairs combined with diplomatic summits
+
+Advanced PC Integration
+-----------------------
+- Founding PC guilds and hosting summits
+- Advanced diplomacy skills affecting success rates
+- Equipment and items for improved espionage
+- Reputation systems affecting invitation likelihood
+- Character backgrounds influencing diplomatic options
+
+USAGE EXAMPLES
+==============
+
+Basic Summit Creation:
+```python
+# Schedule a trade summit
+summit = schedule_guild_summit(
+    host_guild=merchants_guild,
+    invited_guild_ids=[crafters_guild_id, traders_guild_id],
+    agenda=["Joint trade route establishment", "Monopoly agreements"],
+    start_day=current_day + 14,
+    duration_days=2
+)
+```
+
+Daily Processing:
+```python
+# Process summit day with PC actions
+pc_actions = [
+    {'type': 'influence_delegate', 'target_guild': crafters_guild_id, 'method': 'persuasion'},
+    {'type': 'leak_information', 'information': 'vote_intentions'}
+]
+
+results = process_guild_summit_day(summit, current_day, all_guilds, pc_actions)
+```
+
+Impact Evaluation:
+```python
+# Evaluate summit consequences
+impact = evaluate_summit_impact(summit, all_guilds, settlements)
+for guild_id, reputation_change in impact['reputation_changes'].items():
+    apply_reputation_change(guild_id, reputation_change)
+```
+
+NARRATIVE INTEGRATION
+=====================
+
+The Guild Summits System generates rich narrative content:
+
+**Political Drama:**
+- Last-minute alliance formations
+- Dramatic walkouts over principle
+- Secret negotiations and backroom deals
+- Unexpected betrayals and revelations
+
+**Economic Consequences:**
+- New trade relationships and routes
+- Economic warfare through embargos
+- Resource sharing agreements
+- Market manipulation and monopolies
+
+**Military Implications:**
+- War declarations and peace treaties
+- Territorial agreements and disputes
+- Mutual defense pacts
+- Military cooperation agreements
+
+**Social Impact:**
+- Reputation changes affecting guild relationships
+- Settlement reactions to summit outcomes
+- Rumor and gossip network activation
+- Long-term diplomatic consequences
+
+The system creates compelling storylines that can span multiple game sessions,
+with summit outcomes influencing regional politics for extended periods.
+Characters can build reputations as skilled diplomats, notorious saboteurs,
+or influential power brokers through their summit participation.
+
+CONCLUSION
+==========
+
+The Guild Summits System provides a comprehensive framework for large-scale
+diplomatic events that can reshape the political landscape of the Age of Scribes
+world. Through careful integration with existing systems and rich narrative
+possibilities, summits become pivotal moments that create lasting consequences
+and memorable gameplay experiences.
+
+The system's flexibility allows for both cooperative and competitive gameplay,
+with multiple paths to influence outcomes through legitimate diplomacy or
+covert sabotage. This creates engaging content for all types of players while
+maintaining consistency with the broader game world systems. 
