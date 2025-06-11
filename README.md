@@ -140,15 +140,6 @@ Comprehensive documentation is available in the repository:
 - Example implementations and usage patterns
 - Integration guides for popular game engines
 
-## 🤝 Contributing
-
-We welcome contributions from developers interested in:
-- Performance optimization for large-scale simulations
-- Additional economic systems and trade mechanics
-- New NPC personality models and behavior patterns
-- Integration tools for popular game engines
-- Educational applications and case studies
-
 ## 📈 Roadmap
 
 - **Multi-threading Support**: Parallel processing for large simulations
