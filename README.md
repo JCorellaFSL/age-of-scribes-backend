@@ -16,6 +16,22 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 
 ## 🏛️ System Architecture
 
+### Master Orchestration
+
+**🎛️ Simulation Manager**
+- Master orchestration system coordinating all subsystems
+- Sequential and parallel execution modes for optimal performance
+- Real-time performance monitoring and optimization
+- External API integration for dashboards and control interfaces
+- Comprehensive world state management and persistence
+
+**📊 Simulation Reporting**
+- Structured daily event logging and analysis
+- Categorized event tracking (NPCs, guilds, justice, caravans, notable events)
+- JSON export capabilities for external analysis tools
+- Memory management with configurable retention periods
+- Integration hooks for dashboard systems and monitoring
+
 ### Core Simulation Systems
 
 **🏘️ Settlement System**
@@ -25,10 +41,17 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 - Complex governance structures with faction control
 
 **🤖 NPC AI System**
-- Autonomous character behavior with daily routines
-- Personality-driven decision making
+- Autonomous character behavior with daily routines and comprehensive career simulation
+- Personality-driven decision making with dynamic career transitions
 - Memory-based learning and emotional responses
 - Social relationship tracking and interaction systems
+
+**🏛️ Guild System**
+- Dynamic professional organizations with autonomous management
+- Comprehensive guild lifecycle (formation, elections, events, conflicts)
+- NPC-driven guild membership and career progression
+- Guild facilities, vaults, and resource sharing systems
+- Equal opportunity mechanics for NPCs and player characters
 
 **🏛️ Faction Dynamics**
 - Political organizations with evolving ideologies
@@ -43,9 +66,9 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 - Economic pressure-driven narrative events
 
 **⚖️ Justice System**
-- Legal framework with crime investigation
-- Multi-party conflict resolution
-- Reputation-based social consequences
+- Legal framework with crime investigation and case resolution
+- Multi-party conflict resolution with reputation consequences
+- Integrated punishment system with social impacts
 - Integration with faction politics and character relationships
 
 **🧠 Supporting Systems**
@@ -81,23 +104,26 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 
 ## ⚡ Key Features
 
+### Production-Ready Architecture
+- **Master Orchestration**: SimulationManager coordinates all subsystems with performance monitoring
+- **Comprehensive Reporting**: Structured event logging with JSON export and analytics
+- **Performance Optimized**: Handles 1000+ NPCs and dozens of settlements with multi-threading support
+- **External Integration**: Built-in REST API for dashboards, monitoring, and control interfaces
+- **Modular Design**: Easy integration with existing game engines and frameworks
+
 ### Emergent Gameplay
 - **Dynamic Story Generation**: Character-driven events create unique narrative experiences
-- **Persistent Consequences**: Actions have lasting effects on NPCs, settlements, and factions
-- **Organic World Evolution**: Settlements grow, factions rise and fall, economies shift over time
-- **Realistic Social Pressure**: Characters respond to stress, memory, and social dynamics
-
-### Technical Excellence
-- **Modular Architecture**: Easy integration with existing game engines and frameworks
-- **Performance Optimized**: Handles hundreds of NPCs and dozens of settlements efficiently
-- **Event-Driven Design**: Clean separation of concerns with observable state changes
-- **Extensible Framework**: Add new systems, resources, or mechanics without core modifications
+- **Guild-Driven Narratives**: Professional organizations create conflicts, opportunities, and career paths
+- **Persistent Consequences**: Actions have lasting effects tracked through comprehensive reporting
+- **Organic World Evolution**: Settlements grow, guilds form/dissolve, economies shift over time
+- **Realistic Social Dynamics**: Characters respond to stress, memory, reputation, and career ambitions
 
 ### Rich Simulation Depth
-- **Multi-layered Relationships**: Characters track complex social connections and grudges
-- **Economic Interdependence**: Settlement success depends on trade networks and resource management
-- **Political Intrigue**: Faction machinations create opportunities for player involvement
-- **Character Growth**: NPCs learn, adapt, and change based on their experiences
+- **Professional Career Simulation**: NPCs pursue realistic career paths with guild membership
+- **Multi-layered Justice System**: Legal framework with reputation consequences and case tracking
+- **Economic Interdependence**: Settlement success depends on trade networks and guild activities
+- **Political Intrigue**: Faction and guild machinations create opportunities for player involvement
+- **Character Growth**: NPCs learn, adapt, change careers, and form lasting relationships
 
 ## 🚀 Getting Started
 
@@ -108,29 +134,65 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 
 ### Quick Start
 ```python
-from settlement_system import SettlementManager
-from npc_ai import NPCBehaviorController
-from faction_generator import create_faction
+from simulation_manager import SimulationManager, SimulationConfig
 
-# Create a living world
-world = SettlementManager()
-world.create_settlement("Millbrook", initial_population=150)
+# Create a complete simulation world
+config = SimulationConfig(
+    ticks_per_day=24,
+    max_npcs=1000,
+    guild_systems_enabled=True,
+    justice_system_enabled=True
+)
 
-# Add autonomous NPCs
-from npc_profile import generate_npc_profile
-character = generate_npc_profile("Elara the Merchant")
-ai_controller = NPCBehaviorController(character)
+sim = SimulationManager(config)
 
-# Simulate time passage
-world.simulate_day()
-ai_controller.simulate_tick(memory_bank, rumor_network)
+# Define your world
+settlements_config = [
+    {
+        "name": "Riverside",
+        "population": 150,
+        "location": [10.0, 20.0],
+        "founding_year": 980
+    }
+]
+
+npcs_config = [
+    {
+        "name": "Marcus the Merchant",
+        "archetype": "merchant",
+        "location": [10.0, 20.0]
+    }
+]
+
+factions_config = [
+    {
+        "name": "Merchants Guild",
+        "ideology": {"trade": 0.8, "prosperity": 0.7},
+        "size": "large"
+    }
+]
+
+# Initialize and run simulation
+sim.create_world(settlements_config, npcs_config, factions_config)
+sim.start_simulation()
+
+# Run simulation steps
+for day in range(10):
+    for tick in range(24):
+        results = sim.step_simulation()
+        if results.get("day_advanced"):
+            print(f"Day {results['day']} completed")
+            # Access daily reports
+            daily_report = sim.reporter.get_report(results['day'])
+            print(f"Guild events: {len(daily_report.get('guild_events', []))}")
 ```
 
 ### Integration Examples
-- **Unity/Unreal**: Use as backend service for world state management
-- **Web Games**: REST API wrapper for browser-based experiences  
-- **Discord Bots**: Create living campaign worlds for tabletop groups
-- **Procedural Content**: Generate quest content based on faction conflicts and NPC needs
+- **Unity/Unreal**: Use SimulationManager as backend service for world state management
+- **Web Games**: Built-in REST API (`rest_api.py`) for browser-based experiences  
+- **Discord Bots**: Create living campaign worlds with daily report integration
+- **Dashboard Applications**: Real-time monitoring via SimulationReporter analytics
+- **Procedural Content**: Generate quest content based on guild conflicts and justice system events
 
 ## 📚 Documentation
 
@@ -140,13 +202,24 @@ Comprehensive documentation is available in the repository:
 - Example implementations and usage patterns
 - Integration guides for popular game engines
 
-## 📈 Roadmap
+## 📈 Recent Updates
 
-- **Multi-threading Support**: Parallel processing for large simulations
-- **Save/Load System**: Persistent world state management
-- **Visual Analytics**: Real-time simulation monitoring and debugging tools
+### Version 0.0.5.0 - Master Orchestration Edition
+- ✅ **SimulationManager**: Complete master orchestration system with performance monitoring
+- ✅ **SimulationReporter**: Structured daily event logging and analysis system
+- ✅ **Guild System**: Comprehensive professional organizations with autonomous management
+- ✅ **Enhanced NPC AI**: Career transitions and guild integration
+- ✅ **Justice System Integration**: Automated case resolution with reporting
+- ✅ **REST API**: Complete web interface for external applications
+
+## 📈 Future Roadmap
+
+- **Enhanced Multi-threading**: Advanced parallel processing optimizations
+- **Persistent Storage**: Database integration for long-term world persistence  
+- **Visual Analytics Dashboard**: Web-based real-time simulation monitoring
 - **Mod Framework**: Plugin system for custom content and mechanics
 - **Cloud Deployment**: Scalable simulation hosting for multiplayer experiences
+- **AI-Driven Events**: Machine learning for dynamic story generation
 
 ## 📄 License
 
