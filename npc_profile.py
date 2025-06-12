@@ -134,6 +134,26 @@ class NPCProfile:
         # High-level ambition scaffold
         self.goals: List[str] = []
         
+        # Family and life tracking attributes
+        self.birth_day: Optional[int] = None  # Day of birth in simulation
+        self.parent_ids: List[str] = []  # IDs of parent NPCs
+        self.cause_of_death: Optional[str] = None  # Cause if deceased
+        self.death_day: Optional[int] = None  # Day of death in simulation
+        self.is_active: bool = True  # False if deceased
+        
+        # Relationship attributes for family engine
+        self.gender: Optional[str] = None  # "male" or "female"
+        self.social_class: Optional[str] = None  # Social class identifier
+        self.character_id: str = self.npc_id  # Alias for family engine compatibility
+        self.relationship_status: str = "single"  # "single", "courting", "married", "div.single", "div.courting"
+        self.partner_id: Optional[str] = None  # ID of current partner/spouse
+        
+        # Guild and profession attributes
+        self.guild_id: Optional[str] = None  # ID of the guild this NPC belongs to
+        self.sub_guild: Optional[str] = None  # Sub-guild within the main guild
+        self.job_class: Optional[str] = None  # Specific job class/profession
+        self.guild_rank: Optional[str] = None  # "apprentice", "journeyman", "master"
+        
     def _default_beliefs(self) -> Dict[str, float]:
         """
         Generate default belief system values.
@@ -158,21 +178,49 @@ class NPCProfile:
                        region: str,
                        age_range: Tuple[int, int] = (18, 65),
                        num_traits: int = 4,
-                       archetype: Optional[str] = None) -> 'NPCProfile':
+                       archetype: Optional[str] = None,
+                       surname: Optional[str] = None,
+                       parent_ids: Optional[List[str]] = None,
+                       gender: Optional[str] = None,
+                       social_class: Optional[str] = None,
+                       assign_guild: bool = True) -> 'NPCProfile':
         """
         Generate a randomized NPC profile.
         
         Args:
-            name: Name for the NPC
+            name: Name for the NPC (will be combined with surname if provided)
             region: Primary region
             age_range: Tuple of (min_age, max_age)
             num_traits: Number of personality traits to assign
             archetype: Optional archetype to base generation on
+            surname: Optional surname to append to name
+            parent_ids: Optional list of parent NPC IDs
+            gender: Optional gender ("male" or "female")
+            social_class: Optional social class identifier
+            assign_guild: Whether to assign guild membership and job class
             
         Returns:
             New NPCProfile instance
         """
         age = random.randint(age_range[0], age_range[1])
+        
+        # Handle name with optional surname
+        full_name = name
+        if surname:
+            if ' ' in name:
+                # Name already has spaces, replace last part with surname
+                name_parts = name.split()
+                full_name = ' '.join(name_parts[:-1] + [surname])
+            else:
+                # Simple first name, add surname
+                full_name = f"{name} {surname}"
+        
+        # Generate random gender if not provided
+        npc_gender = gender or random.choice(["male", "female"])
+        
+        # Generate random social class if not provided
+        social_classes = ["peasant", "merchant", "noble", "artisan", "clergy"]
+        npc_social_class = social_class or random.choice(social_classes)
         
         if archetype and archetype in cls.ARCHETYPES:
             # Use archetype template
@@ -205,8 +253,9 @@ class NPCProfile:
         factions = ["merchants_guild", "city_guard", "temple_order", "thieves_guild", None, None, None]  # None more likely
         faction = random.choice(factions)
         
-        return cls(
-            name=name,
+        # Create the NPC instance
+        npc = cls(
+            name=full_name,
             age=age,
             region=region,
             faction_affiliation=faction,
@@ -214,6 +263,110 @@ class NPCProfile:
             belief_system=beliefs,
             reputation_local={region: random.uniform(-0.2, 0.2)}  # Start near neutral
         )
+        
+        # Set the additional attributes
+        npc.gender = npc_gender
+        npc.social_class = npc_social_class
+        if parent_ids:
+            npc.parent_ids = parent_ids.copy()
+        
+        # Assign guild membership and job class if requested
+        if assign_guild and npc.age >= 10:  # Only assign guilds to those old enough
+            npc._assign_guild_membership()
+            
+        return npc
+    
+    def _assign_guild_membership(self) -> None:
+        """
+        Assign guild membership, sub-guild, job class, and rank to this NPC.
+        
+        Uses the GuildRegistry to randomly select appropriate guild assignments
+        based on the NPC's age and characteristics.
+        """
+        try:
+            from guild_registry import GuildRegistry
+        except ImportError:
+            # If guild_registry is not available, skip guild assignment
+            return
+        
+        registry = GuildRegistry()
+        
+        # Skip guild assignment for certain social classes or archetypes
+        if (hasattr(self, 'social_class') and self.social_class in ['noble', 'clergy']) or \
+           (hasattr(self, 'archetype') and self.archetype in ['noble', 'clergy', 'royalty']):
+            return
+        
+        # Get all guilds that allow NPC membership
+        available_guilds = registry.get_guilds_for_npc_membership()
+        
+        if not available_guilds:
+            return
+        
+        # Random chance to not have a guild (some NPCs are unemployed/independent)
+        if random.random() < 0.3:  # 30% chance of no guild
+            return
+        
+        # Randomly select a guild
+        guild_id = random.choice(list(available_guilds.keys()))
+        guild = available_guilds[guild_id]
+        
+        # Randomly select a sub-guild
+        sub_guild_name = random.choice(list(guild.sub_guilds.keys()))
+        
+        # Randomly select a job class from the sub-guild
+        job_classes = guild.sub_guilds[sub_guild_name]
+        job_class = random.choice(job_classes)
+        
+        # Assign rank based on age
+        if self.age < 10:
+            rank = None  # Too young
+        elif self.age <= 17:
+            rank = "apprentice"
+        elif self.age <= 29:
+            rank = "journeyman"
+        else:
+            rank = "master"
+        
+        # Set the guild attributes
+        self.guild_id = guild_id
+        self.sub_guild = sub_guild_name
+        self.job_class = job_class
+        self.guild_rank = rank
+    
+    def assign_profession(self, guild_id: str, sub_guild: str, job_class: str, 
+                         guild_rank: Optional[str] = None) -> None:
+        """
+        Manually assign a profession to this NPC.
+        
+        Args:
+            guild_id: ID of the guild
+            sub_guild: Name of the sub-guild
+            job_class: Specific job class
+            guild_rank: Optional rank ("apprentice", "journeyman", "master")
+        """
+        self.guild_id = guild_id
+        self.sub_guild = sub_guild
+        self.job_class = job_class
+        
+        # Auto-assign rank based on age if not provided
+        if guild_rank is None:
+            if self.age < 10:
+                self.guild_rank = None
+            elif self.age <= 17:
+                self.guild_rank = "apprentice"
+            elif self.age <= 29:
+                self.guild_rank = "journeyman"
+            else:
+                self.guild_rank = "master"
+        else:
+            self.guild_rank = guild_rank
+    
+    def clear_profession(self) -> None:
+        """Remove all profession/guild assignments from this NPC."""
+        self.guild_id = None
+        self.sub_guild = None
+        self.job_class = None
+        self.guild_rank = None
     
     def update_personality_from_memory(self, 
                                      memory_node: MemoryNode,
@@ -423,7 +576,24 @@ class NPCProfile:
             'last_trait_update': self.last_trait_update.isoformat(),
             'motivational_weights': self.motivational_weights,
             'relationships': self.relationships,
-            'goals': self.goals
+            'goals': self.goals,
+            # Family and life tracking attributes
+            'birth_day': self.birth_day,
+            'parent_ids': self.parent_ids,
+            'cause_of_death': self.cause_of_death,
+            'death_day': self.death_day,
+            'is_active': self.is_active,
+            # Relationship attributes
+            'gender': self.gender,
+            'social_class': self.social_class,
+            'character_id': self.character_id,
+            'relationship_status': self.relationship_status,
+            'partner_id': self.partner_id,
+            # Guild and profession attributes
+            'guild_id': self.guild_id,
+            'sub_guild': self.sub_guild,
+            'job_class': self.job_class,
+            'guild_rank': self.guild_rank
         }
     
     @classmethod
@@ -478,6 +648,26 @@ class NPCProfile:
         })
         profile.relationships = data.get('relationships', {})
         profile.goals = data.get('goals', [])
+        
+        # Restore family and life tracking attributes (with defaults for backward compatibility)
+        profile.birth_day = data.get('birth_day')
+        profile.parent_ids = data.get('parent_ids', [])
+        profile.cause_of_death = data.get('cause_of_death')
+        profile.death_day = data.get('death_day')
+        profile.is_active = data.get('is_active', True)
+        
+        # Restore relationship attributes (with defaults for backward compatibility)
+        profile.gender = data.get('gender')
+        profile.social_class = data.get('social_class')
+        profile.character_id = data.get('character_id', profile.npc_id)
+        profile.relationship_status = data.get('relationship_status', 'single')
+        profile.partner_id = data.get('partner_id')
+        
+        # Restore guild and profession attributes (with defaults for backward compatibility)
+        profile.guild_id = data.get('guild_id')
+        profile.sub_guild = data.get('sub_guild')
+        profile.job_class = data.get('job_class')
+        profile.guild_rank = data.get('guild_rank')
         
         return profile
     
@@ -658,6 +848,36 @@ class NPCProfile:
         """
         return max(self.motivational_weights.items(), key=lambda x: x[1])[0]
     
+    def get_profession_summary(self) -> str:
+        """
+        Generate a readable summary of the NPC's profession and guild membership.
+        
+        Returns:
+            String describing the NPC's professional status
+        """
+        if not self.guild_id:
+            return "unemployed/independent"
+        
+        # Build profession description
+        parts = []
+        
+        if self.guild_rank:
+            parts.append(self.guild_rank)
+        
+        if self.job_class:
+            parts.append(self.job_class)
+        elif self.sub_guild:
+            parts.append(f"{self.sub_guild.lower()} worker")
+        
+        if self.guild_id:
+            # Clean up guild name for display
+            guild_name = self.guild_id.replace('_', ' ').title()
+            if not guild_name.endswith('Guild'):
+                guild_name += " Guild"
+            parts.append(f"of the {guild_name}")
+        
+        return " ".join(parts) if parts else "guild member"
+    
     def get_simulation_summary(self) -> str:
         """
         Get a summary of simulation-relevant attributes.
@@ -670,6 +890,7 @@ class NPCProfile:
         goal_count = len(self.goals)
         
         summary = f"=== {self.name} Simulation Profile ===\n"
+        summary += f"Age: {self.age} | Profession: {self.get_profession_summary()}\n"
         summary += f"Primary Motivation: {primary_motivation} ({self.motivational_weights[primary_motivation]:.2f})\n"
         summary += f"Relationships: {relationship_count} NPCs\n"
         summary += f"Active Goals: {goal_count}\n"

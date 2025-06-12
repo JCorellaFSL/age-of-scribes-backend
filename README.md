@@ -46,12 +46,26 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 - Memory-based learning and emotional responses
 - Social relationship tracking and interaction systems
 
+**👨‍👩‍👧‍👦 Family Engine**
+- **Complete Relationship Simulation**: Courtship, marriage, divorce with reputation consequences
+- **Generational Dynamics**: Childbirth with realistic fertility rates and infant mortality
+- **Family Tracking**: Parent-child relationships and genealogical records
+- **Life Cycle Management**: Birth, aging, and natural death simulation
+- **Social Impact**: Relationship status affects NPC behavior and social standing
+
 **🏛️ Guild System**
 - Dynamic professional organizations with autonomous management
 - Comprehensive guild lifecycle (formation, elections, events, conflicts)
 - NPC-driven guild membership and career progression
 - Guild facilities, vaults, and resource sharing systems
 - Equal opportunity mechanics for NPCs and player characters
+
+**⚒️ Guild Registry & Professions**
+- **Hierarchical Guild Structure**: 6 major guilds with specialized sub-guilds
+- **Professional Careers**: 30+ job classes across trade and combat specializations
+- **Rank Progression**: Apprentice → Journeyman → Master based on age and experience
+- **Automated Assignment**: NPCs receive appropriate professions based on age and social class
+- **Guild Integration**: Seamless connection between professions and guild membership systems
 
 **🏛️ Faction Dynamics**
 - Political organizations with evolving ideologies
@@ -75,7 +89,7 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 - **Memory Core**: Persistent character memory with emotional weighting
 - **Rumor Engine**: Information spread and social influence simulation
 - **Reputation Tracker**: Multi-dimensional social standing system
-- **NPC Profile Generator**: Detailed character creation with backgrounds and motivations
+- **NPC Profile Generator**: Enhanced character creation with family histories, professions, and motivations
 
 ## 🎮 Target Audience
 
@@ -135,16 +149,37 @@ Age of Scribes SSE is a sophisticated social simulation engine designed to power
 ### Quick Start
 ```python
 from simulation_manager import SimulationManager, SimulationConfig
+from family_engine import FamilyEngine
+from guild_registry import GuildRegistry
+from npc_profile import NPCProfile
 
-# Create a complete simulation world
+# Create a complete simulation world with family and guild systems
 config = SimulationConfig(
     ticks_per_day=24,
     max_npcs=1000,
     guild_systems_enabled=True,
-    justice_system_enabled=True
+    justice_system_enabled=True,
+    family_systems_enabled=True
 )
 
 sim = SimulationManager(config)
+
+# Generate NPCs with automatic profession and family assignment
+guild_registry = GuildRegistry()
+npcs = []
+
+for i in range(50):
+    npc = NPCProfile.generate_random(
+        name=f"Citizen {i}",
+        region="Riverside",
+        age_range=(16, 65),
+        assign_guild=True  # Automatically assigns profession
+    )
+    npcs.append(npc)
+    print(f"{npc.name}: {npc.get_profession_summary()}")
+
+# Initialize family engine for relationship simulation
+family_engine = FamilyEngine(npcs)
 
 # Define your world
 settlements_config = [
@@ -156,35 +191,27 @@ settlements_config = [
     }
 ]
 
-npcs_config = [
-    {
-        "name": "Marcus the Merchant",
-        "archetype": "merchant",
-        "location": [10.0, 20.0]
-    }
-]
-
-factions_config = [
-    {
-        "name": "Merchants Guild",
-        "ideology": {"trade": 0.8, "prosperity": 0.7},
-        "size": "large"
-    }
-]
-
-# Initialize and run simulation
-sim.create_world(settlements_config, npcs_config, factions_config)
+# Initialize and run simulation with family dynamics
+sim.create_world(settlements_config, npcs, [])
 sim.start_simulation()
 
-# Run simulation steps
-for day in range(10):
+# Run simulation with family and career progression
+for day in range(30):
     for tick in range(24):
         results = sim.step_simulation()
         if results.get("day_advanced"):
-            print(f"Day {results['day']} completed")
-            # Access daily reports
-            daily_report = sim.reporter.get_report(results['day'])
-            print(f"Guild events: {len(daily_report.get('guild_events', []))}")
+            # Process family relationships
+            family_results = family_engine.process_relationships(day)
+            births = family_engine.simulate_childbirth(day)
+            
+            print(f"Day {day}: {len(family_results['new_courtships'])} courtships, "
+                  f"{len(family_results['new_marriages'])} marriages, "
+                  f"{len(births)} births")
+            
+            # Get family statistics
+            stats = family_engine.get_relationship_statistics()
+            print(f"Population: {stats['total_npcs']} "
+                  f"(Marriage rate: {stats['marriage_rate']:.1%})")
 ```
 
 ### Integration Examples
@@ -203,6 +230,14 @@ Comprehensive documentation is available in the repository:
 - Integration guides for popular game engines
 
 ## 📈 Recent Updates
+
+### Version 0.0.6.0 - Family & Guild Systems Edition
+- ✅ **Family Engine**: Complete relationship simulation with marriage, courtship, divorce, and childbirth
+- ✅ **Guild Registry**: Hierarchical profession system with 6 major guilds and 30+ job classes
+- ✅ **Enhanced NPC Profiles**: Family tracking, relationship status, and automatic profession assignment
+- ✅ **Generational Simulation**: Birth, aging, mortality, and genealogical record keeping
+- ✅ **Relationship Dynamics**: Multi-stage courtship system with reputation consequences
+- ✅ **Professional Careers**: Age-based rank progression and guild integration
 
 ### Version 0.0.5.0 - Master Orchestration Edition
 - ✅ **SimulationManager**: Complete master orchestration system with performance monitoring
