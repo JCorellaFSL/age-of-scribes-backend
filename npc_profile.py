@@ -119,6 +119,21 @@ class NPCProfile:
         self.trait_evolution_history = []
         self.last_trait_update = datetime.now()
         
+        # Motivational weights for internal decision scoring
+        self.motivational_weights = {
+            "survival": 0.8,
+            "wealth": 0.6,
+            "duty": 0.5,
+            "freedom": 0.4,
+            "knowledge": 0.3
+        }
+
+        # Relationships: trust map to other NPCs (-1.0 to 1.0)
+        self.relationships: Dict[str, float] = {}
+
+        # High-level ambition scaffold
+        self.goals: List[str] = []
+        
     def _default_beliefs(self) -> Dict[str, float]:
         """
         Generate default belief system values.
@@ -405,7 +420,10 @@ class NPCProfile:
                     'changes': entry['changes']
                 } for entry in self.trait_evolution_history
             ],
-            'last_trait_update': self.last_trait_update.isoformat()
+            'last_trait_update': self.last_trait_update.isoformat(),
+            'motivational_weights': self.motivational_weights,
+            'relationships': self.relationships,
+            'goals': self.goals
         }
     
     @classmethod
@@ -449,6 +467,17 @@ class NPCProfile:
         
         if 'last_trait_update' in data:
             profile.last_trait_update = datetime.fromisoformat(data['last_trait_update'])
+        
+        # Restore simulation elements (with defaults for backward compatibility)
+        profile.motivational_weights = data.get('motivational_weights', {
+            "survival": 0.8,
+            "wealth": 0.6,
+            "duty": 0.5,
+            "freedom": 0.4,
+            "knowledge": 0.3
+        })
+        profile.relationships = data.get('relationships', {})
+        profile.goals = data.get('goals', [])
         
         return profile
     
@@ -534,6 +563,129 @@ class NPCProfile:
             factors += 1
         
         return score / max(1, factors)
+    
+    def add_relationship(self, npc_id: str, trust_level: float) -> None:
+        """
+        Add or update a relationship with another NPC.
+        
+        Args:
+            npc_id: The ID of the other NPC
+            trust_level: Trust level from -1.0 (distrust) to 1.0 (trust)
+        """
+        self.relationships[npc_id] = max(-1.0, min(1.0, trust_level))
+    
+    def adjust_relationship(self, npc_id: str, trust_change: float) -> None:
+        """
+        Adjust an existing relationship.
+        
+        Args:
+            npc_id: The ID of the other NPC
+            trust_change: Amount to change trust level by
+        """
+        current_trust = self.relationships.get(npc_id, 0.0)
+        self.relationships[npc_id] = max(-1.0, min(1.0, current_trust + trust_change))
+    
+    def get_relationship_strength(self, npc_id: str) -> str:
+        """
+        Get descriptive relationship strength.
+        
+        Args:
+            npc_id: The ID of the other NPC
+            
+        Returns:
+            Descriptive string of relationship strength
+        """
+        trust = self.relationships.get(npc_id, 0.0)
+        
+        if trust >= 0.7:
+            return "close ally"
+        elif trust >= 0.3:
+            return "trusted friend"
+        elif trust >= 0.1:
+            return "acquaintance"
+        elif trust >= -0.1:
+            return "neutral"
+        elif trust >= -0.3:
+            return "disliked"
+        elif trust >= -0.7:
+            return "distrusted"
+        else:
+            return "enemy"
+    
+    def add_goal(self, goal: str) -> None:
+        """
+        Add a new goal to the NPC's ambitions.
+        
+        Args:
+            goal: Description of the goal
+        """
+        if goal not in self.goals:
+            self.goals.append(goal)
+    
+    def remove_goal(self, goal: str) -> bool:
+        """
+        Remove a goal from the NPC's ambitions.
+        
+        Args:
+            goal: Description of the goal to remove
+            
+        Returns:
+            True if goal was removed, False if not found
+        """
+        if goal in self.goals:
+            self.goals.remove(goal)
+            return True
+        return False
+    
+    def adjust_motivation(self, motivation_type: str, adjustment: float) -> None:
+        """
+        Adjust a motivational weight.
+        
+        Args:
+            motivation_type: Type of motivation to adjust
+            adjustment: Amount to adjust by (can be negative)
+        """
+        if motivation_type in self.motivational_weights:
+            current_weight = self.motivational_weights[motivation_type]
+            self.motivational_weights[motivation_type] = max(0.0, min(1.0, current_weight + adjustment))
+    
+    def get_primary_motivation(self) -> str:
+        """
+        Get the NPC's strongest motivation.
+        
+        Returns:
+            The motivation type with the highest weight
+        """
+        return max(self.motivational_weights.items(), key=lambda x: x[1])[0]
+    
+    def get_simulation_summary(self) -> str:
+        """
+        Get a summary of simulation-relevant attributes.
+        
+        Returns:
+            Formatted string with key simulation data
+        """
+        primary_motivation = self.get_primary_motivation()
+        relationship_count = len(self.relationships)
+        goal_count = len(self.goals)
+        
+        summary = f"=== {self.name} Simulation Profile ===\n"
+        summary += f"Primary Motivation: {primary_motivation} ({self.motivational_weights[primary_motivation]:.2f})\n"
+        summary += f"Relationships: {relationship_count} NPCs\n"
+        summary += f"Active Goals: {goal_count}\n"
+        
+        if self.relationships:
+            summary += "\nKey Relationships:\n"
+            for npc_id, trust in sorted(self.relationships.items(), key=lambda x: abs(x[1]), reverse=True)[:3]:
+                strength = self.get_relationship_strength(npc_id)
+                summary += f"  {npc_id}: {strength} ({trust:+.2f})\n"
+        
+        if self.goals:
+            summary += "\nCurrent Goals:\n"
+            for goal in self.goals[:3]:  # Show top 3 goals
+                summary += f"  - {goal}\n"
+        
+        return summary
 
 
 # Test harness

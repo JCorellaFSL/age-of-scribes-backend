@@ -1,0 +1,266 @@
+# Age of Scribes Simulation Engine Requirements
+# =============================================
+
+# Core Python Dependencies
+python-dateutil>=2.8.2
+dataclasses-json>=0.6.1
+
+# Web API Framework
+Flask>=3.0.0
+Flask-CORS>=4.0.0
+Flask-RESTful>=0.3.10
+
+# Data Processing & Analysis
+numpy>=1.24.0
+pandas>=2.0.0
+
+# Concurrency & Performance
+asyncio>=3.4.3
+threading>=1.0
+concurrent-futures>=3.1.1
+
+# Logging & Monitoring
+structlog>=23.0.0
+
+# Testing & Development
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-mock>=3.11.0
+
+# Serialization & Data Formats
+jsonschema>=4.19.0
+pyyaml>=6.0.1
+
+# Production Server (Optional)
+gunicorn>=21.2.0
+waitress>=2.1.2
+
+# Database Support (Optional)
+sqlite3  # Built into Python
+sqlalchemy>=2.0.0  # If you want ORM support
+
+# Visualization & Analytics (Optional)
+matplotlib>=3.7.0
+plotly>=5.15.0
+
+# Documentation (Development)
+sphinx>=7.1.0
+sphinx-rtd-theme>=1.3.0
+
+# Code Quality (Development)
+black>=23.0.0
+flake8>=6.0.0
+mypy>=1.5.0
+
+# Security
+cryptography>=41.0.0
+
+# Configuration Management
+python-dotenv>=1.0.0
+
+# Memory Profiling (Development)
+memory-profiler>=0.61.0
+psutil>=5.9.0
+
+# HTTP Client (for testing)
+requests>=2.31.0
+
+# Time Zone Support
+pytz>=2023.3
+
+# Scientific Computing (Optional - for advanced AI)
+scipy>=1.11.0
+
+# Machine Learning (Optional - for advanced NPC AI)
+scikit-learn>=1.3.0
+
+# Natural Language Processing (Optional - for rumor generation)
+nltk>=3.8.0
+
+# Graph Analysis (Optional - for social networks)
+networkx>=3.1.0
+
+# Performance Monitoring
+py-spy>=0.3.14
+
+# Configuration
+configparser>=6.0.0
+
+# CLI Tools
+click>=8.1.0
+argparse  # Built into Python
+
+# Caching (Optional)
+redis>=4.6.0  # If you want Redis caching
+python-memcached>=1.59  # If you want Memcached
+
+# Message Queuing (Optional - for distributed processing)
+celery>=5.3.0  # If you want task queuing
+kombu>=5.3.0
+
+# File System Utilities
+pathlib  # Built into Python
+shutil  # Built into Python
+tempfile  # Built into Python
+
+# JSON Processing
+ujson>=5.8.0  # Faster JSON processing
+
+# Compression (for save files)
+zlib  # Built into Python
+gzip  # Built into Python
+
+# Random Number Generation
+random  # Built into Python
+secrets  # Built into Python
+
+# Math & Statistics
+math  # Built into Python
+statistics  # Built into Python
+
+# Collections & Data Structures
+collections  # Built into Python
+heapq  # Built into Python
+bisect  # Built into Python
+
+# Functional Programming
+functools  # Built into Python
+itertools  # Built into Python
+operator  # Built into Python
+
+# Type Hints
+typing>=3.7.4  # Built into Python 3.7+
+typing-extensions>=4.7.0
+
+# Error Handling & Debugging
+traceback  # Built into Python
+pdb  # Built into Python
+
+# System & OS
+os  # Built into Python
+sys  # Built into Python
+platform  # Built into Python
+
+# I/O Operations
+io  # Built into Python
+csv  # Built into Python
+pickle  # Built into Python
+
+# Regular Expressions
+re  # Built into Python
+
+# URL & Web Utilities
+urllib  # Built into Python
+html  # Built into Python
+
+# Email (Optional - for notifications)
+smtplib  # Built into Python
+email  # Built into Python
+
+# Hashing & Encryption
+hashlib  # Built into Python
+hmac  # Built into Python
+uuid  # Built into Python
+
+# Subprocess Management
+subprocess  # Built into Python
+multiprocessing  # Built into Python
+
+# Signal Handling
+signal  # Built into Python
+
+# Locale & Internationalization
+locale  # Built into Python
+gettext  # Built into Python
+
+# Context Management
+contextlib  # Built into Python
+
+# Weak References
+weakref  # Built into Python
+
+# Copy Operations
+copy  # Built into Python
+
+# Abstract Base Classes
+abc  # Built into Python
+
+# Enum Support
+enum  # Built into Python 3.4+
+
+# Decimal Arithmetic
+decimal  # Built into Python
+
+# Fractions
+fractions  # Built into Python
+
+# Socket Programming (for networking)
+socket  # Built into Python
+socketserver  # Built into Python
+
+# Threading Primitives
+queue  # Built into Python
+
+# Garbage Collection
+gc  # Built into Python
+
+# Warnings
+warnings  # Built into Python
+
+# Docstring & Introspection
+inspect  # Built into Python
+dis  # Built into Python
+
+# Code Execution
+code  # Built into Python
+codeop  # Built into Python
+
+# Benchmarking & Profiling
+timeit  # Built into Python
+profile  # Built into Python
+cProfile  # Built into Python
+pstats  # Built into Python
+
+# Unit Testing
+unittest  # Built into Python
+doctest  # Built into Python
+
+# Import System
+importlib  # Built into Python
+pkgutil  # Built into Python
+
+# Compression & Archives
+tarfile  # Built into Python
+zipfile  # Built into Python
+
+# XML Processing
+xml  # Built into Python
+
+# HTML Processing
+html.parser  # Built into Python
+
+# Internet Protocols
+ftplib  # Built into Python
+poplib  # Built into Python
+imaplib  # Built into Python
+nntplib  # Built into Python
+telnetlib  # Built into Python
+
+# Multimedia (Optional)
+wave  # Built into Python
+audioop  # Built into Python
+
+# Cryptographic Services
+base64  # Built into Python
+
+# File Formats
+plistlib  # Built into Python
+
+# Internet Data Handling
+json  # Built into Python
+
+# Structured Markup Processing Tools
+xmlrpc  # Built into Python
+
+# Development Tools
+pydoc  # Built into Python 

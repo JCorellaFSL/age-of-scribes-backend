@@ -499,6 +499,182 @@ class NPCBehaviorController:
         if self.current_hour == 0:  # New day
             self.current_day += 1
     
+    def simulate_day(self, memory_bank: MemoryBank) -> None:
+        """
+        Run the NPC's behavior schedule across a complete 24-hour day.
+        
+        This method executes the NPC's daily routine, processing scheduled activities
+        for each hour and evaluating memory impact at the end of the day.
+        
+        Args:
+            memory_bank: The NPC's memory bank for processing experiences
+        """
+        logging.info(f"Starting daily simulation for {self.npc_profile.name}")
+        
+        # Reset daily tracking
+        self.daily_log = []
+        
+        # Execute hourly schedule
+        for hour in range(24):
+            self.current_hour = hour
+            action = self.daily_schedule.get(hour, "idle")
+            
+            # Log the hour's activity
+            self.daily_log.append({
+                'hour': hour,
+                'action': action,
+                'state': self.current_state,
+                'stress_level': self.stress_level
+            })
+            
+            # Perform the scheduled action
+            self.perform_action(action)
+            
+            # Check for state adjustments every few hours
+            if hour % 3 == 0:
+                self.adjust_state()
+        
+        # Process daily memory impact
+        self.evaluate_memory_impact(memory_bank)
+        
+        # Advance to next day
+        self.current_day += 1
+        self.current_hour = 0  # Reset to midnight
+        
+        logging.info(f"Completed daily simulation for {self.npc_profile.name} (Day {self.current_day})")
+    
+    def perform_action(self, action: str) -> None:
+        """
+        Execute a specific action for the NPC (stub implementation).
+        
+        This method processes the NPC's scheduled activity for the current hour.
+        Currently implemented as a stub that logs the action and may trigger
+        placeholder events.
+        
+        Args:
+            action: The action to perform (from daily_schedule)
+        """
+        logging.debug(f"{self.npc_profile.name} at hour {self.current_hour}: {action}")
+        
+        # Update current state based on action
+        action_state_mapping = {
+            "waking_up": "transitioning",
+            "morning_routine": "preparing",
+            "breakfast": "eating",
+            "work_preparation": "preparing", 
+            "working": "working",
+            "lunch_break": "eating",
+            "social_time": "socializing",
+            "evening_routine": "preparing",
+            "dinner": "eating",
+            "leisure": "relaxing",
+            "evening_leisure": "relaxing",
+            "preparing_sleep": "preparing",
+            "sleeping": "sleeping",
+            "studying": "learning",
+            "reading": "learning",
+            "socializing": "socializing",
+            "tavern_time": "socializing",
+            "security_check": "vigilant",
+            "planning": "contemplating",
+            "idle": "idle"
+        }
+        
+        # Handle faction-specific activities
+        if action.startswith("faction_duties_"):
+            faction_id = action.split("_", 2)[2]
+            self.current_state = "faction_activity"
+            
+            # Log faction engagement
+            self.daily_log[-1]['faction_activity'] = faction_id
+            
+            # Placeholder: Could trigger faction-related events
+            if random.random() < 0.1:  # 10% chance of faction event
+                self._trigger_faction_event(faction_id, action)
+        
+        else:
+            # Map action to state
+            new_state = action_state_mapping.get(action, "idle")
+            if new_state != self.current_state:
+                self.current_state = new_state
+                self.state_history.append((new_state, self.current_hour, f"Action: {action}"))
+        
+        # Action-specific behavior modifiers
+        self._process_action_effects(action)
+        
+        # Log the action for daily summary
+        if action != "idle" and action != "sleeping":
+            self.notable_triggers.append(f"Hour {self.current_hour}: {action}")
+    
+    def _trigger_faction_event(self, faction_id: str, action: str) -> None:
+        """
+        Placeholder for faction-specific event generation.
+        
+        Args:
+            faction_id: The faction the NPC is serving
+            action: The specific faction duty being performed
+        """
+        event_types = [
+            "received_faction_orders",
+            "attended_faction_meeting", 
+            "completed_faction_mission",
+            "faction_political_discussion",
+            "faction_resource_management"
+        ]
+        
+        event_type = random.choice(event_types)
+        
+        logging.info(f"{self.npc_profile.name} triggered faction event: {event_type} for {faction_id}")
+        
+        # Add to decisions log
+        self.decisions_made.append({
+            'hour': self.current_hour,
+            'decision': f"Engaged in {event_type}",
+            'reason': f"Faction duty for {faction_id}",
+            'faction': faction_id
+        })
+        
+        # Slight stress reduction from fulfilling duties (if loyal)
+        if "loyal" in self.npc_profile.personality_traits:
+            self.stress_level = max(0.0, self.stress_level - 0.05)
+    
+    def _process_action_effects(self, action: str) -> None:
+        """
+        Process side effects of performing specific actions.
+        
+        Args:
+            action: The action being performed
+        """
+        # Stress-reducing activities
+        stress_reducers = ["leisure", "evening_leisure", "socializing", "eating"]
+        if action in stress_reducers:
+            self.stress_level = max(0.0, self.stress_level - 0.02)
+        
+        # Stress-increasing activities
+        stress_inducers = ["working", "security_check", "planning"]
+        if action in stress_inducers and "anxious" in self.npc_profile.personality_traits:
+            self.stress_level = min(1.0, self.stress_level + 0.01)
+        
+        # Learning activities (for scholarly NPCs)
+        if action in ["studying", "reading"] and "scholarly" in self.npc_profile.personality_traits:
+            self.stress_level = max(0.0, self.stress_level - 0.03)
+            
+            # Chance to generate knowledge-seeking behavior
+            if random.random() < 0.15:  # 15% chance
+                self.decisions_made.append({
+                    'hour': self.current_hour,
+                    'decision': "Pursued intellectual curiosity",
+                    'reason': f"Scholarly nature drove {action}",
+                    'satisfaction': "high"
+                })
+        
+        # Social activities (for sociable NPCs)
+        if action in ["socializing", "tavern_time", "social_time"]:
+            if "outgoing" in self.npc_profile.personality_traits:
+                self.stress_level = max(0.0, self.stress_level - 0.04)
+            elif "shy" in self.npc_profile.personality_traits:
+                self.stress_level = min(1.0, self.stress_level + 0.02)
+    
     def log_day(self) -> str:
         """Generate a comprehensive daily summary of NPC behavior and state changes."""
         summary = []

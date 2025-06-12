@@ -172,6 +172,61 @@ class JusticeCase:
         else:
             return "dismiss_case"
     
+    def finalize_case(self, guilty_threshold: float = 0.6) -> Dict[str, Any]:
+        """
+        Finalize a case based on guilt probability and apply suitable punishment.
+        
+        This method provides a simplified case resolution that evaluates the case,
+        determines a verdict based on the guilty threshold, and applies appropriate
+        punishment without complex regional bias or corruption factors.
+        
+        Args:
+            guilty_threshold: Probability threshold for guilty verdict (default 0.6)
+            
+        Returns:
+            Dictionary containing finalization results
+        """
+        if self.status != "open":
+            raise ValueError(f"Case {self.case_id} is not open for finalization")
+        
+        # Evaluate the case to get guilt probability
+        eval_result = self.evaluate_case()
+        
+        # Determine verdict based on threshold
+        self.verdict = "guilty" if eval_result["final_guilt_probability"] >= guilty_threshold else "innocent"
+        self.status = "resolved"
+        self.resolution_date = datetime.now()
+        
+        # Apply appropriate punishment based on verdict and crime type
+        if self.verdict == "guilty":
+            if self.crime_type in ["fraud", "corruption", "smuggling"]:
+                self.punishment_applied.append("fine")
+            elif self.crime_type in ["theft", "assault", "arson"]:
+                self.punishment_applied.append("imprisonment")
+            elif self.crime_type in ["murder", "treason"]:
+                self.punishment_applied.append("execution")
+            else:
+                self.punishment_applied.append("sanctions")
+        else:
+            self.punishment_applied.append("released")
+        
+        # Create finalization result
+        finalization_result = {
+            'case_id': self.case_id,
+            'crime_type': self.crime_type,
+            'accused_id': self.accused_id,
+            'verdict': self.verdict,
+            'punishment_applied': self.punishment_applied.copy(),
+            'guilt_probability': eval_result["final_guilt_probability"],
+            'guilty_threshold': guilty_threshold,
+            'evidence_strength': eval_result["evidence_strength"],
+            'witness_count': eval_result["witness_count"],
+            'resolution_date': self.resolution_date.isoformat(),
+            'evaluation_details': eval_result
+        }
+        
+        return finalization_result
+    
     def resolve_case(self, 
                     bias_profile: Optional[Dict[str, Any]] = None,
                     judge_id: Optional[str] = None,
