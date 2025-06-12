@@ -51,6 +51,7 @@ class FamilyEngine:
         # Childbirth settings
         self.default_fertility_rate = 0.05  # 5% chance per day for eligible couples
         self.infant_mortality_rate = 0.2  # 20% chance of death at birth
+        self.maternal_mortality_rate = 0.05  # 5% chance of mother dying during childbirth
         self.min_mother_age = 18
         self.max_mother_age = 40
         
@@ -712,7 +713,7 @@ class FamilyEngine:
                          "relationship_rate": (status_counts["courting"] + status_counts["married"]) / total_npcs if total_npcs > 0 else 0.0
          }
     
-    def simulate_childbirth(self, current_day: int, fertility_rate: Optional[float] = None) -> List[str]:
+    def simulate_childbirth(self, current_day: int, fertility_rate: Optional[float] = None) -> Dict[str, List[str]]:
         """
         Simulate childbirth between married NPCs with realistic birth odds and mortality.
         
@@ -721,12 +722,13 @@ class FamilyEngine:
             fertility_rate: Daily fertility rate (defaults to class setting)
             
         Returns:
-            List of character IDs for successfully born children
+            Dictionary with 'births' (successful births) and 'maternal_deaths' (mothers who died)
         """
         if fertility_rate is None:
             fertility_rate = self.default_fertility_rate
             
         births = []
+        maternal_deaths = []
         
         for (parent1_id, parent2_id, marriage_day) in self.marriages:
             parent1 = self._get_npc_by_id(parent1_id)
@@ -754,7 +756,37 @@ class FamilyEngine:
             # Child creation
             child = self._generate_child_profile(mother, father, current_day)
             
-            # 1-in-5 chance of death at birth
+            # Check for maternal mortality (5% chance)
+            maternal_death = random.random() < self.maternal_mortality_rate
+            if maternal_death:
+                # Mother dies during childbirth
+                if hasattr(mother, 'is_active'):
+                    mother.is_active = False
+                if hasattr(mother, 'cause_of_death'):
+                    mother.cause_of_death = "childbirth_complications"
+                if hasattr(mother, 'death_day'):
+                    mother.death_day = current_day
+                
+                # Track maternal death
+                maternal_deaths.append(self._get_character_id(mother))
+                
+                # Update marriage status - father becomes widowed
+                if hasattr(father, 'relationship_status'):
+                    father.relationship_status = "single"  # Widowed, but can remarry
+                if hasattr(father, 'partner_id'):
+                    father.partner_id = None
+                
+                # Remove marriage record
+                marriage_to_remove = None
+                for marriage in self.marriages:
+                    if ((marriage[0] == self._get_character_id(mother) and marriage[1] == self._get_character_id(father)) or
+                        (marriage[0] == self._get_character_id(father) and marriage[1] == self._get_character_id(mother))):
+                        marriage_to_remove = marriage
+                        break
+                if marriage_to_remove:
+                    self.marriages.remove(marriage_to_remove)
+            
+            # Check for infant mortality (20% chance)
             if random.random() < self.infant_mortality_rate:
                 # Mark child as deceased
                 if hasattr(child, 'is_active'):
@@ -773,7 +805,10 @@ class FamilyEngine:
                 self.npcs.append(child)
                 births.append(self._get_character_id(child))
                 
-        return births
+        return {
+            "births": births,
+            "maternal_deaths": maternal_deaths
+        }
     
     def _generate_child_profile(self, mother: NPCProfile, father: NPCProfile, birth_day: int) -> NPCProfile:
         """
@@ -882,13 +917,17 @@ class FamilyEngine:
         adults = [npc for npc in self.npcs if npc.age >= 16]
         deceased_children = [npc for npc in self.npcs 
                            if npc.age == 0 and getattr(npc, 'cause_of_death', None) == "infant_mortality"]
+        deceased_mothers = [npc for npc in self.npcs 
+                          if getattr(npc, 'cause_of_death', None) == "childbirth_complications"]
         
         return {
             "total_npcs": total_npcs,
             "total_children": len(children),
             "total_adults": len(adults),
             "deceased_infants": len(deceased_children),
+            "deceased_mothers": len(deceased_mothers),
             "infant_survival_rate": 1.0 - (len(deceased_children) / max(1, len(children) + len(deceased_children))),
+            "maternal_survival_rate": 1.0 - (len(deceased_mothers) / max(1, len(deceased_mothers) + len([npc for npc in self.npcs if getattr(npc, 'gender', None) == 'female' and npc.age >= 18]))),
             "families_with_children": len(set(
                 tuple(sorted(getattr(npc, 'parent_ids', []))) 
                 for npc in children 

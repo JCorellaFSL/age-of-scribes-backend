@@ -202,11 +202,12 @@ for day in range(30):
         if results.get("day_advanced"):
             # Process family relationships
             family_results = family_engine.process_relationships(day)
-            births = family_engine.simulate_childbirth(day)
+            childbirth_results = family_engine.simulate_childbirth(day)
             
             print(f"Day {day}: {len(family_results['new_courtships'])} courtships, "
                   f"{len(family_results['new_marriages'])} marriages, "
-                  f"{len(births)} births")
+                  f"{len(childbirth_results['births'])} births, "
+                  f"{len(childbirth_results['maternal_deaths'])} maternal deaths")
             
             # Get family statistics
             stats = family_engine.get_relationship_statistics()
